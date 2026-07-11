@@ -1,16 +1,54 @@
-# Sprint Status — EDA for Vietnam Stock Volatility Prediction
-# Source epics: _bmad-output/planning-artifacts/epics.md
-# Driven by bmad-loop orchestrator (policy: per-epic gates, adapter claude)
+# generated: 2026-07-11
+# last_updated: 2026-07-11
+# project: data_eda
+# project_key: NOKEY
+# tracking_system: file-system
+# story_location: {project-root}/_bmad-output/implementation-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog -> in-progress: Automatically when first story is created (via create-story)
+#   - in-progress -> done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# Action Item Status:
+#   - open: Committed during a retrospective, not yet addressed
+#   - in-progress: Actively being worked on
+#   - done: Completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - Developer typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+# - Retrospective appends its action items to action_items; sprint-status surfaces open ones
 
 generated: 2026-07-11
 last_updated: 2026-07-11
-project: Vietnam Stock Volatility EDA
-project_key: EDA
+project: data_eda
+project_key: NOKEY
 tracking_system: file-system
-story_location: "{project-root}/_bmad-output/implementation-artifacts/stories/"
+story_location: "{project-root}/_bmad-output/implementation-artifacts"
 
 development_status:
-  # Epic 1: EDA Foundation (Phase 1 + 2)
+  # Epic 1: EDA Foundation (Phase 1 — Profiling, Phase 2 — Quality)
   epic-1: backlog
   1-1-eda-scaffold: ready-for-dev
   1-2-profiling: backlog
@@ -24,20 +62,20 @@ development_status:
   2-3-outliers-clustering-regime: backlog
   epic-2-retrospective: optional
 
-  # Epic 3: News EDA (Phase 4 + 7)
+  # Epic 3: News EDA (Phase 4 + Phase 7 Sparse News)
   epic-3: backlog
   3-1-coverage-publish-time-effective-date: backlog
   3-2-sentiment-topics: backlog
   3-3-sparse-news: backlog
   epic-3-retrospective: optional
 
-  # Epic 4: Relationship & Event Study (Phase 5 + 6)
+  # Epic 4: Relationship & Event Study (Phase 5 + Phase 6)
   epic-4: backlog
   4-1-relationship-methods: backlog
   4-2-event-study: backlog
   epic-4-retrospective: optional
 
-  # Epic 5: Feature Validation & Leakage (Phase 8 + 9)
+  # Epic 5: Feature Validation & Leakage (Phase 8 + Phase 9)
   epic-5: backlog
   5-1-feature-validation: backlog
   5-2-leakage-detection: backlog
