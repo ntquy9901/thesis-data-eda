@@ -63,10 +63,10 @@ development_status:
   epic-2-retrospective: optional
 
   # Epic 3: News EDA (Phase 4 + Phase 7 Sparse News)
-  epic-3: backlog
-  3-1-coverage-publish-time-effective-date: backlog
-  3-2-sentiment-topics: backlog
-  3-3-sparse-news: backlog
+  epic-3: done
+  3-1-coverage-publish-time-effective-date: done
+  3-2-sentiment-topics: done
+  3-3-sparse-news: done
   epic-3-retrospective: optional
 
   # Epic 4: Relationship & Event Study (Phase 5 + Phase 6)
