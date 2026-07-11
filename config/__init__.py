@@ -44,6 +44,11 @@ VN30_TICKERS = [
     "SSI", "STB", "TCB", "TPB", "VCB", "VHM", "VIB", "VIC", "VJC", "VNM"
 ]
 
+# EDA scope (per EDA Guide / PRD §14) — representative VN30 subset for the 10-phase EDA.
+# The pipeline scales to all of VN30_TICKERS by changing only this list.
+EDA_TICKERS = ["VCB", "FPT", "HPG", "SSI", "MWG"]
+EDA_OUTPUT_DIR = PROJECT_ROOT / "eda_output"
+
 # Vietnam market configuration
 TIMEZONE = "Asia/Ho_Chi_Minh"
 TRADING_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri"]

@@ -49,8 +49,8 @@ story_location: "{project-root}/_bmad-output/implementation-artifacts"
 
 development_status:
   # Epic 1: EDA Foundation (Phase 1 — Profiling, Phase 2 — Quality)
-  epic-1: backlog
-  1-1-eda-scaffold: ready-for-dev
+  epic-1: in-progress
+  1-1-eda-scaffold: done
   1-2-profiling: backlog
   1-3-quality: backlog
   epic-1-retrospective: optional
