@@ -51,8 +51,8 @@ development_status:
   # Epic 1: EDA Foundation (Phase 1 — Profiling, Phase 2 — Quality)
   epic-1: in-progress
   1-1-eda-scaffold: done
-  1-2-profiling: backlog
-  1-3-quality: backlog
+  1-2-profiling: done
+  1-3-quality: done
   epic-1-retrospective: optional
 
   # Epic 2: Price EDA (Phase 3)
