@@ -80,6 +80,9 @@ def configure_plots() -> None:
     DejaVu Sans (matplotlib default) renders Vietnamese diacritics, so no extra
     font dependency is required. Call once at the top of each plotting script.
     """
+    import matplotlib
+
+    matplotlib.use("Agg")  # headless-safe (no GUI backend required)
     import matplotlib.pyplot as plt
 
     plt.style.use("default")

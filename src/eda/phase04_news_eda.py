@@ -272,7 +272,10 @@ def _plot_publish_time(pt: pd.DataFrame, path) -> None:
 
 
 def run_phase() -> list:
+    from src.eda.common import configure_plots
+
     ensure_output_dirs()
+    configure_plots()
     outdir = phase_output_dir("news")
     news = _load_news_frame()
     trading = _trading_calendar()

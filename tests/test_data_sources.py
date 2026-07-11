@@ -4,10 +4,15 @@ Tests that verify the CLAUDE.md rule: All data must come from the
 specified source directories only.
 """
 
+
 import pytest
-from pathlib import Path
-from src.data.load_news import load_news_articles, get_available_sources, verify_data_integrity
-from src.data.load_prices import load_stock_ohlcv, get_available_tickers, verify_price_data_integrity
+
+from src.data.load_news import get_available_sources, load_news_articles, verify_data_integrity
+from src.data.load_prices import (
+    get_available_tickers,
+    load_stock_ohlcv,
+    verify_price_data_integrity,
+)
 
 
 @pytest.mark.integration

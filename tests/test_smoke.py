@@ -4,8 +4,9 @@ These tests verify basic functionality and package health.
 Run with: pytest -m smoke
 """
 
-import pytest
 from pathlib import Path
+
+import pytest
 
 
 @pytest.mark.smoke
@@ -61,6 +62,7 @@ def test_claude_md_exists():
 def test_time_zone_configuration():
     """Verify Vietnam timezone is properly configured."""
     from datetime import datetime
+
     import pytz
 
     # Check Vietnam timezone exists
