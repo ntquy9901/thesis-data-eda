@@ -1,7 +1,7 @@
 # Technical Architecture Document
 # Vietnam Stock Market News-Price Correlation Analysis System
 
-**Document Version:** 1.0
+**Document Version:** 1.2
 **Last Updated:** 2026-07-11
 **Project:** Vietnam Stock Market Analysis
 **Architecture Style:** Data Lakehouse with Pipeline Processing
@@ -1179,7 +1179,88 @@ quality_targets:
 
 ---
 
-*Document Status: Updated with EDA findings*
+## 16. EDA Pipeline Architecture (10-Phase Plan)
+
+> Implements `docs/EDA_Guide_Stock_Volatility_Price_News.md`. The lakehouse (Bronze/Silver/Gold) from sections 1–3 remains the data backbone; this section adds the **EDA analysis layer** that consumes Silver/Gold and writes evidence artifacts to `eda_output/`. The defining constraint is **leakage safety** for the downstream volatility-prediction targets (T+1/T+5/T+10 realized volatility).
+
+### 16.1 EDA Module Layout
+```
+src/eda/
+├── phase01_profiling.py        # Phase 1: dataset profiling table
+├── phase02_quality.py          # Phase 2: missingness, duplicates, invalid values
+├── phase03_price_eda.py        # Phase 3: returns, realized vol, ATR, ACF/PACF, rolling
+├── phase04_news_eda.py         # Phase 4: coverage, publish-time, effective_trading_date, topics
+├── phase05_relationship.py     # Phase 5: Pearson/Spearman/MI/Granger/cross-corr
+├── phase06_event_study.py      # Phase 6: T-10/T-5/T-1 → T+1/T+5/T+10 windows
+├── phase07_sparse_news.py      # Phase 7: news_count_1d/3d/5d, days_since_last_news, news_available flag
+├── phase08_feature_validation.py  # Phase 8: variance/redundancy/collinearity/drift
+├── phase09_leakage.py          # Phase 9: leakage detection + explicit leakage list
+├── phase10_visualizations.py   # Phase 10: 11 required charts
+└── report.py                   # Final report assembly
+```
+Each phase is a standalone module: `run_phase(tickers, output_dir) -> artifacts`. They reuse existing loaders (`src/data/load_prices.py`, `load_news.py`) and Silver outputs; they must NOT mutate source data.
+
+### 16.2 Leakage-Safe Target Engineering (critical)
+Volatility prediction targets must be computed with strict temporal ordering to prevent look-ahead bias:
+```
+For each ticker, at trading date t:
+    rv_t+h = sqrt( sum(log_return^2) over [t+1, t+h] )   for h in {1, 5, 10}
+```
+- Targets use ONLY future returns relative to t — never available at prediction time. ✅
+- Any feature aligned to date t must use information with timestamp ≤ close of trading day t (or ≤ pub_time for news, mapped via `effective_trading_date`).
+- Rolling/ewm features must use `min_periods` and right-aligned windows; `.shift()` is applied before joining with targets to avoid same-row leakage.
+- Train/test splits are **time-based** (e.g., train ≤ 2024, test ≥ 2025), never random — enforced in Phase 9.
+
+### 16.3 eda_output/ Structure
+```
+eda_output/
+├── profiling/            # Phase 1: profiling_table.csv
+├── quality/              # Phase 2: missingness_*.csv, duplicate_report.json, invalid_values.json
+├── price/                # Phase 3: returns_dist.png, rolling_vol.png, acf_pacf.png, corr_heatmap.png
+├── news/                 # Phase 4: coverage_*.csv, publish_time.png, sentiment_summary.json
+├── relationship/         # Phase 5: corr_matrix.csv, granger_results.json, cross_corr.png
+├── feature_engineering/  # Phase 8: feature_report.csv, collinearity.json, drop_recommendations.json
+├── leakage/              # Phase 9: leakage_list.md (EXPLICIT), leakage_checks.json
+└── report/               # Final report: eda_final_report.md + candidate_features.csv
+```
+
+### 16.4 EDA Data Flow
+```
+Silver (prices_cleaned, news_cleaned) ──┐
+Gold (sentiment, volatility)  ─────────┤──▶ src/eda/phaseXX ──▶ eda_output/<phase>/
+macro (DXY, SBV rates) ────────────────┘                          │
+                                                                  ▼
+                                              src/eda/report.py ──▶ eda_output/report/eda_final_report.md
+```
+- EDA reads Silver/Gold (read-only); never writes back to the lakehouse.
+- Each phase is idempotent: re-running overwrites its own `eda_output/<phase>/` only.
+- Phases 3–7 must be runnable on the VN30 subset (VCB, FPT, HPG, SSI, MWG) first, then scaled to all 30 via config (no code change).
+
+### 16.5 EDA-Aware Data Schemas (additions)
+```
+Silver prices: +ticker, returns, log_returns, atr_14, realized_vol_5d/20d   (ATR + realized vol added for Phase 3)
+Silver news:   +effective_trading_date, sentiment_score, news_available(1/0) (Phase 4/7 alignment key)
+EDA targets:   rv_t+1, rv_t+5, rv_t+10                                      (Phase 3, leakage-safe)
+EDA features:  news_count_1d/3d/5d, days_since_last_news, sentiment_lag_0/1/2/3 (Phase 7, shifted)
+```
+
+### 16.6 Architecture Decision Records (EDA)
+
+#### ADR-006: EDA-First, Leakage-Safe by Construction
+**Date:** 2026-07-11  **Status:** Accepted
+**Decision:** Build a dedicated `src/eda/` layer that produces evidence artifacts before any model training; enforce leakage-safe target/feature engineering as a structural invariant (temporal ordering, time-based splits, explicit leakage list).
+**Rationale:** The EDA Guide mandates leakage detection and "no future information"; volatility targets are inherently forward-looking and the most leakage-prone artifact.
+**Consequences:** + Reproducible, auditable EDA; + Candidate feature set with known leakage status; − Extra pipeline stage before modeling; − Requires disciplined shift/window handling.
+
+#### ADR-007: EDA Consumes Lakehouse, Does Not Modify It
+**Date:** 2026-07-11  **Status:** Accepted
+**Decision:** `src/eda/` reads Silver/Gold read-only and writes exclusively to `eda_output/`.
+**Rationale:** Preserves the Bronze/Silver/Gold immutability contract; keeps EDA experiments isolated and re-runnable.
+**Consequences:** + No lakehouse pollution; + Easy to discard/rebuild EDA; − Some recomputation across phases (acceptable for EDA scale).
+
+---
+
+*Document Status: Updated with EDA findings + 10-Phase EDA architecture*
 *Last Updated: 2026-07-11*
-*Architecture Version: 1.1*
+*Architecture Version: 1.2*
 *Next Review: 2026-08-11*

@@ -1,7 +1,7 @@
 # Product Requirements Document (PRD)
 # Vietnam Stock Market News-Price Correlation Analysis
 
-**Document Version:** 1.0
+**Document Version:** 1.2
 **Last Updated:** 2026-07-11
 **Project:** Vietnam Stock Market Analysis
 **Status:** Draft
@@ -11,13 +11,15 @@
 ## 1. Executive Summary
 
 ### 1.1 Purpose
-This PRD defines requirements for analyzing the correlation between news sentiment and stock price movements in the Vietnamese stock market. The project aims to provide actionable insights for investors and researchers by quantifying the impact of news on stock prices and volatility.
+This PRD defines requirements for a comprehensive **Exploratory Data Analysis (EDA)** and correlation study on Vietnamese stock market data, with the downstream goal of **stock volatility prediction**. The project quantifies the impact of news on stock prices and volatility, producing an evidence-backed EDA report, a leakage-safe feature set, and candidate predictive features before any model training.
+
+**Prediction targets (downstream, post-EDA):** T+1, T+5, T+10 realized volatility.
 
 ### 1.2 Scope
 - **Market Focus:** Vietnam Stock Market (VN30 constituents)
-- **Data Sources:** News articles (5 sources), OHLCV price data
-- **Analysis Types:** News-price correlation, news-volatility correlation
-- **Output:** Correlation metrics, statistical significance, predictive features
+- **Data Sources:** News articles (5 sources), OHLCV price data, macro indicators (DXY, SBV rates)
+- **Analysis Types:** News-price correlation, news-volatility correlation, **full 10-phase EDA** (profiling → quality → price EDA → news EDA → relationship → event study → sparse news → feature validation → leakage detection → visualizations)
+- **Output:** EDA report (executive summary + findings + recommended features + risks), correlation metrics, statistical significance, leakage-safe candidate features
 
 ### 1.3 Target Users
 - **Primary:** Academic researchers, data scientists
@@ -419,6 +421,7 @@ Updates    Preserved      Validated         Ready      Reports
 ### 13.3 Change Log
 | Version | Date | Changes | Author |
 |---------|------|---------|--------|
+| 1.2 | 2026-07-11 | Added EDA Methodology (10-phase plan) + FR-009..FR-017 + volatility prediction targets (per EDA Guide) | Claude (BMAD) |
 | 1.1 | 2026-07-11 | Added EDA findings from 2025-2026 data analysis | Data Analysis Team |
 | 1.0 | 2026-07-11 | Initial PRD creation | Data Analysis Team |
 
@@ -498,6 +501,62 @@ Updates    Preserved      Validated         Ready      Reports
 **Document Status:** Updated with EDA findings
 **Next Review Date:** 2026-07-15
 **Approved By:** Pending
+
+---
+
+## 14. EDA Methodology — 10-Phase Analysis Plan (per EDA Guide)
+
+> Source: `docs/EDA_Guide_Stock_Volatility_Price_News.md`. This section operationalizes the EDA Guide into project requirements. Every finding must be backed by statistics or visualizations; leakage must be detected and listed explicitly.
+
+### 14.1 EDA Rules (non-negotiable)
+1. Never modify raw data — work on copies.
+2. Every finding supported by statistics or visualizations.
+3. Detect possible data leakage at every stage.
+4. Save every chart and summary to `eda_output/`.
+
+### 14.2 Output Structure
+```
+eda_output/
+    profiling/            # Phase 1
+    quality/              # Phase 2
+    price/                # Phase 3
+    news/                 # Phase 4
+    relationship/         # Phase 5
+    feature_engineering/  # Phase 8
+    leakage/              # Phase 9
+    report/               # Final report
+```
+
+### 14.3 The 10 Phases → Deliverables
+| Phase | Deliverable | Maps to |
+|-------|-------------|---------|
+| 1. Dataset Profiling | Profiling table (rows/cols/dtypes/keys/memory per table) | FR-008 |
+| 2. Data Quality | Missing %, pattern, by stock/date; duplicates; invalid values (neg volume, future timestamps, impossible prices) | FR-002, FR-008 |
+| 3. Price EDA | OHLCV summary, returns, log returns, realized vol, ATR, rolling stats; histograms, boxplots, rolling vol, ACF/PACF, corr heatmap; outliers, vol clustering, regime changes | FR-003 |
+| 4. News EDA | Coverage (news/day, news/stock, days w/o news); publish time (before/during/after market, weekend); `effective_trading_date`; sentiment summaries; topics; source distribution + repost rate | FR-002, FR-003 |
+| 5. Relationship Analysis | news count vs future vol; sentiment vs future vol; topic vs vol; negative news vs return; methods: Pearson, Spearman, Mutual Information, Granger, Cross-correlation | FR-004 |
+| 6. Event Study | Per important event: T-10/T-5/T-1 vs T+1/T+5/T+10 — realized vol, return, abnormal volatility | FR-004.5 |
+| 7. Sparse News Analysis | coverage_ratio, days_since_last_news, news_count_1d/3d/5d, `news_available` flag — never mask "no news" as sentiment=0 | FR-010 |
+| 8. Feature Engineering Validation | missing/variance/redundancy/correlation/leakage/drift; remove constant/duplicate/collinear features | FR-013 |
+| 9. Leakage Detection | publish vs trading timestamp; future info; rolling window correctness; target leakage; normalization leakage — explicit list | FR-012 |
+| 10. Visualizations | 11 required charts (missing heatmap, news coverage by stock, news by day, sentiment dist, return dist, vol dist, rolling vol, corr heatmap, event study plots, news count vs future vol, SHAP/importance if model) | FR-015 |
+
+### 14.4 EDA-Specific Functional Requirements
+- **FR-009 (P0) Realized Volatility:** Compute realized volatility for multiple windows, including T+1/T+5/T+10 as prediction targets. Realized vol + ATR + (optionally) Parkinson/GARCH for diagnostics.
+- **FR-010 (P0) News Coverage Features:** Compute `effective_trading_date`, `news_count_1d/3d/5d`, `days_since_last_news`, `news_available` flag. Distinguish "no news" from "neutral news".
+- **FR-011 (P0) Event Study:** Window analysis T-10/T-5/T-1 → T+1/T+5/T+10 around important news events; abnormal volatility vs baseline.
+- **FR-012 (P0) Leakage Detection:** Automated checks for timestamp ordering, future information, rolling-window look-ahead, target leakage, normalization leakage. Produce an explicit leakage list.
+- **FR-013 (P0) Feature Validation:** Variance/redundancy/collinearity checks; recommend removal of constant/duplicate/highly-collinear features.
+- **FR-014 (P1) Relationship Methods:** Beyond Pearson (FR-004.1), add Spearman, Mutual Information, Granger causality, cross-correlation at multiple lags.
+- **FR-015 (P0) EDA Visualization Pack:** All 11 charts from Phase 10, saved as PNG to `eda_output/`.
+- **FR-016 (P0) EDA Final Report:** Executive summary (data quality, major risks, key observations) + top findings with evidence + recommended candidate features + risks (leakage, sparse, imbalance, outliers) + prioritized next steps.
+- **FR-017 (P0) Subset Scope:** Execute full 10 phases on a representative VN30 subset (initial: VCB, FPT, HPG, SSI, MWG) with SSI as primary news source; cafef/vndirect secondary. Architecture must scale to all 30.
+
+### 14.5 Definition of Done (EDA)
+- All 10 phases produce artifacts under `eda_output/`.
+- Leakage list is explicit; every leakage item either fixed or documented as accepted risk.
+- Final report generated with evidence-backed findings + candidate feature list.
+- Smoke tests pass; changed code ≥80% diff-coverage.
 
 ---
 
