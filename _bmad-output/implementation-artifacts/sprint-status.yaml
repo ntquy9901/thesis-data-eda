@@ -56,10 +56,10 @@ development_status:
   epic-1-retrospective: optional
 
   # Epic 2: Price EDA (Phase 3)
-  epic-2: backlog
-  2-1-returns-realized-vol-atr: backlog
-  2-2-rolling-acf-pacf-corr: backlog
-  2-3-outliers-clustering-regime: backlog
+  epic-2: done
+  2-1-returns-realized-vol-atr: done
+  2-2-rolling-acf-pacf-corr: done
+  2-3-outliers-clustering-regime: done
   epic-2-retrospective: optional
 
   # Epic 3: News EDA (Phase 4 + Phase 7 Sparse News)
