@@ -1,0 +1,35 @@
+{
+  "timestamp": "2026-07-11T20:38:40.378769",
+  "analysis_type": "news-price_correlation",
+  "correlation_analysis": {
+    "same_day_correlation": {
+      "correlation": -0.02965127818349627,
+      "p_value": 0.7766435729483485,
+      "significant": false,
+      "data_points": 95
+    },
+    "next_day_correlation": {
+      "correlation": 0.06524802049759341,
+      "p_value": 0.5320989467969953,
+      "significant": false,
+      "data_points": 94
+    },
+    "volume_correlation": {
+      "correlation": -0.10805829878910576,
+      "p_value": 0.297256419523074,
+      "significant": false,
+      "data_points": 95
+    },
+    "volatility_correlation": {
+      "correlation": 0.053857544543200894,
+      "p_value": 0.6061644703123887,
+      "significant": false,
+      "data_points": 94
+    }
+  },
+  "sentiment_day_analysis": {
+    "high_sentiment_days": {
+      "count": 47,
+      "avg_return": -0.0010865820213559944,
+      "avg_sentiment": 0.18445170335208289,
+      "positive_days": 

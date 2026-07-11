@@ -1,0 +1,133 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.pytest_cache/
+.coverage
+coverage.xml
+*.cover
+.hypothesis/
+.ruff_cache/
+.mypy_cache/
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv/
+uv/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints/
+*.ipynb
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.projects/
+
+# Data files (per CLAUDE.md: exclude data dirs from git)
+data/raw/*
+data/processed/*
+data/features/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/features/.gitkeep
+
+# Lakehouse + EDA outputs (large, regenerable)
+data_lakehouse/
+eda_output/
+
+# Model files
+*.pkl
+*.h5
+*.pt
+*.pth
+*.onnx
+
+# Generated outputs (keep summary reports, exclude artifacts)
+reports/*.pdf
+reports/*.html
+reports/*.xlsx
+reports/*.csv
+reports/*.png
+reports/*.jpg
+!reports/*.md
+
+# Memory files (except index)
+memory/*.md
+!MEMORY.md
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Claude Code specific
+.agents/
+.claude/
+_bmad/
+.bmad/
+.opencode/
+
+# BMad (keep configuration, ignore cache)
+.bmad/cache/
+.bmad/*.log
+
+# uv
+.python-version
+uv.lock
+
+# Coverage
+htmlcov/
+.tox/
+.nox/
+
+# Documentation builds
+docs/_build/
+docs/.doctrees/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp
+*.swo
+.bmad-loop/runs/
+.bmad-loop/cache/
+.bmad-loop/policy.toml

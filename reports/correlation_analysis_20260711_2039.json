@@ -1,0 +1,58 @@
+{
+  "timestamp": "2026-07-11T20:39:20.326046",
+  "analysis_type": "news-price_correlation",
+  "correlation_analysis": {
+    "same_day_correlation": {
+      "correlation": 0.10425651172961005,
+      "p_value": 0.3199654535478097,
+      "significant": false,
+      "data_points": 94
+    },
+    "next_day_correlation": {
+      "correlation": -0.11857656193619431,
+      "p_value": 0.2576157455350535,
+      "significant": false,
+      "data_points": 93
+    },
+    "volume_correlation": {
+      "correlation": -0.01768315938513664,
+      "p_value": 0.8656677404139524,
+      "significant": false,
+      "data_points": 94
+    },
+    "volatility_correlation": {
+      "correlation": -0.04260409681771037,
+      "p_value": 0.6851199599732493,
+      "significant": false,
+      "data_points": 93
+    }
+  },
+  "sentiment_day_analysis": {
+    "high_sentiment_days": {
+      "count": 47,
+      "avg_return": -0.0005541560552007076,
+      "avg_sentiment": 0.2997337462715961,
+      "positive_days": 26,
+      "negative_days": 21
+    },
+    "low_sentiment_days": {
+      "count": 47,
+      "avg_return": 0.0021955793988600062,
+      "avg_sentiment": -0.26999364853962243,
+      "positive_days": 23,
+      "negative_days": 23
+    },
+    "statistical_test": {
+      "t_statistic": -0.5037953252814417,
+      "p_value": 0.615622694406556,
+      "significant_difference": false
+    }
+  },
+  "summary": {
+    "key_findings": [],
+    "statistical_significance": [],
+    "recommendations": [
+      "No significant correlations found - consider enriching data or analysis methods"
+    ]
+  }
+}

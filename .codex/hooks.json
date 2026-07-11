@@ -1,0 +1,24 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run --no-project python D:\\bmad-projects\\thesis\\data_eda\\.bmad-loop\\bmad_loop_hook.py SessionStart"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run --no-project python D:\\bmad-projects\\thesis\\data_eda\\.bmad-loop\\bmad_loop_hook.py Stop"
+          }
+        ]
+      }
+    ]
+  }
+}
