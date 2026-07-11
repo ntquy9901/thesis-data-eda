@@ -62,6 +62,30 @@ def realized_volatility(log_returns: pd.Series, window: int) -> pd.Series:
     return np.sqrt((log_returns**2).rolling(window).sum())
 
 
+def parkinson_volatility(high: pd.Series, low: pd.Series) -> pd.Series:
+    """Parkinson variance estimator: ``(ln(H/L))^2 / (4·ln 2)``. Pure.
+
+    This is the volatility measure the sibling ``stock_vol_prediction01`` baselines
+    (HAR, CryptoMamba, embedding) actually predict — NOT realized volatility.
+    Invalid rows (low<=0, high<low, non-finite) are masked to NaN.
+    """
+    ratio = high / low
+    var = (np.log(ratio) ** 2) / (4 * np.log(2))
+    return var.where((low > 0) & (high >= low) & np.isfinite(var))
+
+
+def parkinson_targets(parkinson: pd.Series, horizons: tuple[int, ...] = TARGET_HORIZONS) -> pd.DataFrame:
+    """Leakage-safe forward Parkinson targets: ``pk_t+h`` = parkinson at t+h, aligned to t.
+
+    Matches the baselines' ``parkinson.shift(-horizon)`` convention. The last h
+    rows are NaN (no future data).
+    """
+    out = pd.DataFrame(index=parkinson.index)
+    for h in horizons:
+        out[f"pk_t+{h}"] = parkinson.shift(-h)
+    return out
+
+
 def volatility_targets(log_returns: pd.Series, horizons: tuple[int, ...] = TARGET_HORIZONS) -> pd.DataFrame:
     """Leakage-safe forward realized-volatility targets.
 
@@ -78,7 +102,12 @@ def volatility_targets(log_returns: pd.Series, horizons: tuple[int, ...] = TARGE
 
 
 def price_metrics(df: pd.DataFrame) -> pd.DataFrame:
-    """Full per-ticker feature frame: returns, ATR, realized vol, + targets."""
+    """Full per-ticker feature frame: returns, ATR, realized vol, Parkinson vol, + targets.
+
+    Two target families are emitted so EDA can serve the sibling modeling project:
+    - ``rv_t+1/+5/+10`` — realized vol (windowed sum of squared log returns)
+    - ``pk_t+1/+5/+10`` — Parkinson vol (the measure ``stock_vol_prediction01`` baselines predict)
+    """
     required = {"date", "open", "high", "low", "close"}
     missing = required - set(df.columns)
     if missing:
@@ -87,8 +116,10 @@ def price_metrics(df: pd.DataFrame) -> pd.DataFrame:
     out["atr_14"] = average_true_range(out["high"], out["low"], out["close"])
     for w in RV_WINDOWS:
         out[f"realized_vol_{w}d"] = realized_volatility(out["log_returns"], w)
-    targets = volatility_targets(out["log_returns"])
-    return pd.concat([out, targets], axis=1)
+    out["parkinson_vol"] = parkinson_volatility(out["high"], out["low"])
+    rv_targets = volatility_targets(out["log_returns"])
+    pk_targets = parkinson_targets(out["parkinson_vol"])
+    return pd.concat([out, rv_targets, pk_targets], axis=1)
 
 
 # ===================== Story 2-2: rolling diagnostics + viz =====================
@@ -270,6 +301,8 @@ def run_phase() -> list[Path]:
             f"- regime shifts: {n_regime} (first: {first_shift})\n"
             f"- rv_t+10 mean: {metrics['rv_t+10'].mean():.5f} (NaN-tail: "
             f"{metrics['rv_t+10'].isna().sum()})\n"
+            f"- parkinson_vol mean: {metrics['parkinson_vol'].mean():.6f} | "
+            f"pk_t+10 mean: {metrics['pk_t+10'].mean():.6f} (baseline-aligned target)\n"
         )
 
     if returns_by_ticker:

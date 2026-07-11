@@ -10,6 +10,8 @@ from src.eda.phase03_price_eda import (
     add_returns,
     average_true_range,
     detect_outliers,
+    parkinson_targets,
+    parkinson_volatility,
     price_metrics,
     realized_volatility,
     regime_changes,
@@ -71,6 +73,40 @@ def test_realized_volatility_known():
     assert pd.isna(rv.iloc[0])  # only 1 element in window
     assert abs(rv.iloc[1] - 0.1) < 1e-9  # sqrt(0^2 + 0.1^2)
     assert abs(rv.iloc[2] - np.sqrt(0.02)) < 1e-9  # sqrt(0.1^2 + 0.1^2)
+
+
+# ============ Parkinson volatility (baseline-aligned target) ============
+def test_parkinson_volatility_known_value():
+    # H/L = 110/100 → ln(1.1)^2 / (4 ln2)
+    high = pd.Series([110.0])
+    low = pd.Series([100.0])
+    pv = parkinson_volatility(high, low)
+    assert abs(pv.iloc[0] - (np.log(1.1) ** 2) / (4 * np.log(2))) < 1e-12
+
+
+def test_parkinson_volatility_masks_invalid():
+    high = pd.Series([110.0, 100.0, 0.0])  # row1 high<low; row2 high=0
+    low = pd.Series([100.0, 110.0, 100.0])
+    pv = parkinson_volatility(high, low)
+    assert pd.notna(pv.iloc[0])
+    assert pd.isna(pv.iloc[1])  # high<low → NaN
+    assert pd.isna(pv.iloc[2])  # high=0 → NaN
+
+
+def test_parkinson_targets_leakage_safe():
+    pv = pd.Series([0.01, 0.02, 0.03, 0.04, 0.05])
+    tgt = parkinson_targets(pv, horizons=(1,))
+    assert abs(tgt.loc[0, "pk_t+1"] - 0.02) < 1e-12  # future value at t=0
+    assert pd.isna(tgt.loc[4, "pk_t+1"])  # no future → NaN
+
+
+def test_price_metrics_has_parkinson_columns():
+    df = pd.DataFrame(
+        {"date": pd.date_range("2024-01-01", periods=40, freq="D"),
+         "open": 100.0, "high": 101.0, "low": 99.0, "close": 100.0, "volume": 1000}
+    )
+    m = price_metrics(df)
+    assert {"parkinson_vol", "pk_t+1", "pk_t+5", "pk_t+10"} <= set(m.columns)
 
 
 def test_price_metrics_columns_and_nan_tail():
