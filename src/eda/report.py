@@ -121,12 +121,18 @@ def run() -> list[Path]:
                      "weak signal). Directional accuracy ~0.62–0.65 unchanged. Full comparison: `modeling/comparison_report.md`.")
 
     lines.append("\n## Thesis Conclusion\n")
-    lines.append("**The central question — does Vietnamese financial news predict stock volatility? — answers NO** "
-                 f"at the daily trading-day frequency, robustly: linear and nonlinear models, basic and advanced "
-                 f"news features (counts, sentiment strength, topic flags), and {n_tickers} VN30 tickers all agree. "
-                 "The HAR price baseline (today's vol) dominates; news adds essentially nothing. This is a valid, "
-                 "well-powered null result — the more interesting signal likely lives at event-level granularity, "
-                 "intraday, or requires text embeddings / LLM features beyond daily aggregates.")
+    lines.append("**Does Vietnamese financial news predict stock volatility? — A NUANCED answer** "
+                 "(see `modeling/significance_report.md` for the formal tests):\n")
+    lines.append("- **Short horizons (1d, 5d): NO.** Diebold-Mariano p=0.99/0.39 — news adds nothing beyond HAR price.")
+    lines.append("- **10-day horizon: YES, weakly.** DM p=0.0008 (significant); ΔR² 95% CI [+0.0007, +0.0022] — a "
+                 "small but statistically real improvement.")
+    lines.append("- **Heterogeneous: news helps ~25% of tickers** (7-8/30; max ΔR² ≈ 0.036) — a minority are "
+                 "news-sensitive, the majority are not.")
+    lines.append("- **Event-level: NO average abnormal-volatility effect** (t-test p=0.27-0.86 across horizons).")
+    lines.append("\n**Bottom line:** daily Vietnamese news is a weak, long-horizon (10d), ticker-specific predictor "
+                 "of Parkinson volatility — not the strong, immediate signal one might expect. The null at short "
+                 "horizons is robust across linear/nonlinear models; the 10d effect is the one place news earns its "
+                 "place in the feature set. Stronger signal likely needs text embeddings / LLM features or intraday/event data.")
 
     lines.append("\n## Charts (12)\n")
     lines.append("See `report/charts_index.md`. News: coverage-by-stock, count-by-day, publish-time, "

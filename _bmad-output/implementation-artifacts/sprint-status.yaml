@@ -94,10 +94,16 @@ development_status:
   epic-7-retrospective: optional
 
   # Epic 8: Advanced Modeling (nonlinear + richer news + 30 tickers)
-  epic-8: in-progress
+  epic-8: done
   8-1-scale-30-tickers: done
   8-2-advanced-news-features: done
-  8-3-nonlinear-comparison: in-progress
+  8-3-nonlinear-comparison: done
   epic-8-retrospective: optional
+
+  # Epic 9: Statistical Significance
+  epic-9: done
+  9-1-forecast-significance: done
+  9-2-heterogeneity-event-test: done
+  epic-9-retrospective: optional
 
 action_items: []

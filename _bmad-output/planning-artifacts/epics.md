@@ -253,4 +253,28 @@
 - [ ] Output: `comparison_report.md` updated with the nonlinear verdict
 **Verify:** report answers "does news help under nonlinear models + advanced features + 30 tickers?"
 
+---
+
+## Epic 9: Statistical Significance — Is the News Contribution Real?
+
+> Epic 8 found negligible ΔR² from news. This epic tests whether that negligible effect is **statistically distinguishable from zero** (Diebold-Mariano + bootstrap CI) and whether it holds **per-ticker** (heterogeneity) — turning "small" into "not significant", a rigorous thesis-grade null.
+
+### Story 9.1: Forecast significance (Diebold-Mariano + bootstrap CI)
+**Goal:** Formally test if news-augmented forecasts differ from price-only.
+**Acceptance:**
+- [ ] `src/modeling/significance.py` → Diebold-Mariano test on squared-error loss differential (price vs +news_basic vs +news_adv) per target + horizon-aware
+- [ ] Bootstrap CI (1000 resamples) on ΔRMSE and ΔR²
+- [ ] Output: `eda_output/modeling/significance_report.md` + `significance.json`
+- [ ] Unit test: DM stat/p on synthetic (identical → p high; clearly worse → p low)
+**Verify:** report states per-target whether news improvement is significant
+
+### Story 9.2: Per-ticker heterogeneity + event abnormal-vol t-test
+**Goal:** Does news help ANY ticker? Are event abnormal-vols ≠ 0?
+**Acceptance:**
+- [ ] Per-ticker ΔR² (price vs +news) distribution + count of tickers where news helps
+- [ ] t-test on event-study abnormal vol (Phase 6) per horizon (mean ≠ 0?)
+- [ ] Output appended to `significance_report.md`
+**Verify:** heterogeneity + event significance reported
+
+
 
