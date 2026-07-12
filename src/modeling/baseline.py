@@ -25,6 +25,17 @@ from src.modeling.dataset import SPLIT_DATE, TARGETS, build_panel
 
 PRICE_FEATURES = ["har_daily", "har_weekly", "har_monthly", "atr_14", "realized_vol_5d", "realized_vol_20d"]
 NEWS_FEATURES = ["news_count_1d", "news_count_3d", "news_count_5d", "days_since_last_news", "sentiment_mean"]
+NEWS_ADVANCED = [
+    "event_weighted_count", "abs_sentiment", "sentiment_std", "neg_news_count", "pos_news_count",
+    "topic_earnings_count", "topic_dividend_count", "topic_ma_count",
+    "topic_management_count", "topic_regulation_count", "topic_macro_count", "topic_sector_count",
+]
+FEATURE_SETS = {
+    "price": PRICE_FEATURES,
+    "price+news_basic": PRICE_FEATURES + NEWS_FEATURES,
+    "price+news_adv": PRICE_FEATURES + NEWS_FEATURES + NEWS_ADVANCED,
+}
+MODEL_TYPES = ["ridge", "gbm"]
 EPS = 1e-12
 
 
@@ -59,8 +70,16 @@ def compute_metrics(y_true: np.ndarray, y_pred: np.ndarray, y_prev: np.ndarray |
             "qlike": round(qlike, 6), "dir_acc": round(dir_acc, 4) if dir_acc is not None else None}
 
 
-def make_pipeline():
-    """Preprocessing (fit on TRAIN only) + Ridge regressor."""
+def make_pipeline(model_type: str = "ridge"):
+    """Preprocessing (fit on TRAIN only) + regressor.
+
+    ``ridge`` → median-impute + standardize + Ridge. ``gbm`` → HistGradientBoosting
+    (NaN-native, no impute/scale needed; fast histogram GBM).
+    """
+    if model_type == "gbm":
+        from sklearn.ensemble import HistGradientBoostingRegressor
+
+        return HistGradientBoostingRegressor(max_iter=200, max_depth=4, learning_rate=0.05, random_state=0)
     from sklearn.impute import SimpleImputer
     from sklearn.linear_model import Ridge
     from sklearn.pipeline import Pipeline
@@ -90,7 +109,7 @@ def _split_xy(panel: pd.DataFrame, features: list[str], target: str, split: str)
 
 # ---------- runner ----------
 def run_models() -> pd.DataFrame:
-    """Train Model A (price) and Model B (price+news) per target → metrics rows."""
+    """Train each (model × feature_set × target) → metrics rows (18 combos)."""
     panel = build_panel()
     if panel.empty:
         return pd.DataFrame()
@@ -98,20 +117,14 @@ def run_models() -> pd.DataFrame:
     for target in TARGETS:
         if target not in panel.columns:
             continue
-        # Model A: price only
-        Xtr, ytr, Xte, yte, feats, yprev = _split_xy(panel, PRICE_FEATURES, target, SPLIT_DATE)
-        if len(Xtr) == 0 or len(Xte) == 0:
-            continue
-        pa = make_pipeline().fit(Xtr, ytr)
-        ma = compute_metrics(yte.to_numpy(), pa.predict(Xte), yprev)
-        rows.append({"target": target, "model": "A_price_only", "n_features": len(feats), **ma})
-        # Model B: price + news (guard like Model A — empty split would crash fit)
-        Xtr2, ytr2, Xte2, yte2, feats2, yprev2 = _split_xy(panel, PRICE_FEATURES + NEWS_FEATURES, target, SPLIT_DATE)
-        if len(Xtr2) == 0 or len(Xte2) == 0:
-            continue
-        pb = make_pipeline().fit(Xtr2, ytr2)
-        mb = compute_metrics(yte2.to_numpy(), pb.predict(Xte2), yprev2)
-        rows.append({"target": target, "model": "B_price_plus_news", "n_features": len(feats2), **mb})
+        for fset_name, feats in FEATURE_SETS.items():
+            Xtr, ytr, Xte, yte, used, yprev = _split_xy(panel, feats, target, SPLIT_DATE)
+            if len(Xtr) == 0 or len(Xte) == 0:
+                continue
+            for mtype in MODEL_TYPES:
+                pipe = make_pipeline(mtype).fit(Xtr, ytr)
+                m = compute_metrics(yte.to_numpy(), pipe.predict(Xte), yprev)
+                rows.append({"target": target, "model": mtype, "feature_set": fset_name, "n_features": len(used), **m})
     return pd.DataFrame(rows)
 
 
@@ -130,23 +143,31 @@ def run() -> list[Path]:
     metrics.to_csv(mpath, index=False, encoding="utf-8")
     written.append(mpath)
 
-    # comparison: pivot per target, compute Δ (B vs A)
     lines = ["# Modeling Comparison — News Contribution to Parkinson Vol\n"]
-    lines.append(f"Split: train < {SPLIT_DATE}, test >= {SPLIT_DATE}. Model: Ridge (HAR-style, median impute + standardize fit on train).\n")
-    lines.append("\n## Metrics by target × model\n")
+    lines.append(
+        f"Split: train < {SPLIT_DATE}, test >= {SPLIT_DATE}. Models: ridge (linear HAR) + gbm "
+        f"(HistGradientBoosting). Feature sets: price / +news_basic / +news_adv. 30 tickers."
+    )
+    lines.append("\n## Metrics (model × feature_set × target)\n")
     lines.append("```\n" + metrics.to_string(index=False) + "\n```")
 
-    lines.append("\n\n## News contribution (Model B − Model A; positive ΔR² / negative ΔRMSE = news helps)\n")
-    for target in TARGETS:
-        a = metrics[(metrics.target == target) & (metrics.model == "A_price_only")]
-        b = metrics[(metrics.target == target) & (metrics.model == "B_price_plus_news")]
-        if a.empty or b.empty:
-            continue
-        a, b = a.iloc[0], b.iloc[0]
-        d_rmse = (b["rmse"] - a["rmse"]) if a["rmse"] is not None else None
-        d_r2 = (b["r2"] - a["r2"]) if a["r2"] is not None else None
-        verdict = "news HELPS" if (d_r2 is not None and d_r2 > 0) else ("neutral" if d_r2 == 0 else "news does NOT help")
-        lines.append(f"- **{target}**: ΔRMSE={d_rmse:+.6f}  ΔR²={d_r2:+.4f}  → {verdict}")
+    lines.append("\n\n## News contribution (ΔR² vs price-only; >0 = news helps)\n")
+    for mtype in MODEL_TYPES:
+        lines.append(f"\n### {mtype}")
+        for target in TARGETS:
+            base = metrics[(metrics.model == mtype) & (metrics.feature_set == "price") & (metrics.target == target)]
+            if base.empty:
+                continue
+            base = base.iloc[0]
+            for fset in ["price+news_basic", "price+news_adv"]:
+                row = metrics[(metrics.model == mtype) & (metrics.feature_set == fset) & (metrics.target == target)]
+                if row.empty:
+                    continue
+                row = row.iloc[0]
+                d_r2 = (row["r2"] - base["r2"]) if base["r2"] is not None and row["r2"] is not None else None
+                d_rmse = (row["rmse"] - base["rmse"]) if base["rmse"] is not None else None
+                verdict = "HELPS" if (d_r2 is not None and d_r2 > 0) else ("neutral" if d_r2 == 0 else "no effect")
+                lines.append(f"- {target} [{fset}]: ΔR²={d_r2:+.4f}  ΔRMSE={d_rmse:+.6f} → {verdict}")
 
     rep = outdir / "comparison_report.md"
     rep.write_text("\n".join(lines), encoding="utf-8")

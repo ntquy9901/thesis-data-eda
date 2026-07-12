@@ -50,9 +50,9 @@ def test_real_run_models_smoke():
     df = run_models()
     if df.empty:
         pytest.skip("no modeling panel (run EDA phases first)")
-    # both models × 3 targets = 6 rows (or fewer if a target dropped)
-    assert {"target", "model", "rmse", "r2", "qlike"} <= set(df.columns)
-    assert set(df["model"]) == {"A_price_only", "B_price_plus_news"}
+    assert {"target", "model", "feature_set", "rmse", "r2", "qlike"} <= set(df.columns)
+    assert set(df["model"]) == {"ridge", "gbm"}
+    assert set(df["feature_set"]) == {"price", "price+news_basic", "price+news_adv"}
 
 
 def test_real_run_writes_report_smoke():
