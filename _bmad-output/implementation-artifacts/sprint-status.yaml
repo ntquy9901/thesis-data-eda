@@ -95,9 +95,9 @@ development_status:
 
   # Epic 8: Advanced Modeling (nonlinear + richer news + 30 tickers)
   epic-8: in-progress
-  8-1-scale-30-tickers: in-progress
-  8-2-advanced-news-features: backlog
-  8-3-nonlinear-comparison: backlog
+  8-1-scale-30-tickers: done
+  8-2-advanced-news-features: done
+  8-3-nonlinear-comparison: in-progress
   epic-8-retrospective: optional
 
 action_items: []

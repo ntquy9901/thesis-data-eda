@@ -14,8 +14,11 @@ from src.eda.common import (
 
 
 def test_eda_tickers_is_vn30_subset():
-    """EDA_TICKERS must be a non-empty subset of VN30-style tickers."""
-    assert len(EDA_TICKERS) == 5
+    """EDA_TICKERS must be VN30 tickers (scaled to full VN30 in Epic 8)."""
+    from config import VN30_TICKERS
+
+    assert EDA_TICKERS == VN30_TICKERS
+    assert len(EDA_TICKERS) == 30
     assert "VCB" in EDA_TICKERS
     assert all(isinstance(t, str) and t.isupper() for t in EDA_TICKERS)
 

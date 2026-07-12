@@ -82,6 +82,13 @@ def build_panel() -> pd.DataFrame:
         panel = panel.merge(
             news[news_cols], left_on=["ticker", "date"], right_on=["ticker", "trading_date"], how="left"
         ).drop(columns=["trading_date"], errors="ignore")
+
+    # Advanced news features (Story 8-2): event-weighted, sentiment strength, topic flags
+    adv_path = EDA_OUTPUT_DIR / "modeling" / "advanced_news_features.parquet"
+    if adv_path.exists():
+        adv = pd.read_parquet(adv_path)
+        adv["date"] = pd.to_datetime(adv["date"]).dt.normalize()
+        panel = panel.merge(adv, on=["ticker", "date"], how="left")
     return panel
 
 
