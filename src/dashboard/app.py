@@ -5,10 +5,16 @@ Run: ``streamlit run src/dashboard/app.py``. Reads ``eda_output/`` only.
 
 from __future__ import annotations
 
-import pandas as pd
-import streamlit as st
+import sys
+from pathlib import Path
 
-from src.dashboard import data as D
+# Make ``src`` importable when launched via ``streamlit run`` (no pytest rootdir)
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+import pandas as pd  # noqa: E402
+import streamlit as st  # noqa: E402
+
+from src.dashboard import data as D  # noqa: E402
 
 st.set_page_config(page_title="VN Stock News × Volatility", layout="wide")
 
