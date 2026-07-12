@@ -76,9 +76,9 @@ development_status:
   epic-4-retrospective: optional
 
   # Epic 5: Feature Validation & Leakage (Phase 8 + Phase 9)
-  epic-5: backlog
-  5-1-feature-validation: backlog
-  5-2-leakage-detection: backlog
+  epic-5: done
+  5-1-feature-validation: done
+  5-2-leakage-detection: done
   epic-5-retrospective: optional
 
   # Epic 6: Visualization & Final Report (Phase 10 + Final Report)
