@@ -221,3 +221,36 @@
 **Verify:** comparison_report quantifies news contribution (positive/negative/neutral)
 **FR:** FR-016 (candidate-feature validation), modeling extension
 
+---
+
+## Epic 8: Advanced Modeling — Does News Help with Nonlinear Models + Richer Features + More Data?
+
+> Epic 7 found news features add ~no value to a LINEAR HAR-Ridge baseline. This epic tests the three levers that could change that verdict: (A) nonlinear models, (B) richer news features, (C) more data (30 tickers).
+
+### Story 8.1: Scale EDA + modeling to all 30 VN30 tickers
+**Goal:** Broaden the evidence base from 5 → 30 tickers.
+**Acceptance:**
+- [ ] `config.EDA_TICKERS` expanded to full VN30; pipeline regenerates artifacts on 30 tickers
+- [ ] Modeling panel rebuilt (panel.parquet + split_summary) covering 30 tickers
+- [ ] Verify runtime acceptable; note any tickers with sparse news
+**Verify:** split_summary.n_tickers == 30; pipeline end-to-end runs
+**FR:** FR-017
+
+### Story 8.2: Advanced news features
+**Goal:** Richer news signal than daily counts/mean sentiment.
+**Acceptance:**
+- [ ] `src/modeling/features.py` producing per-(ticker,date): event-weighted news count (Σ|sentiment|), sentiment strength (|sentiment_mean|, rolling std), topic-flag counts (earnings/dividend/M&A/.../macro/sector from the Phase-4 category map)
+- [ ] Features added to the modeling panel (NaN when no news)
+- [ ] Unit tests: weighting, topic-flag, NaN handling
+**Verify:** new feature columns present + unit-tested
+**FR:** FR-010, FR-013
+
+### Story 8.3: Nonlinear model + full comparison
+**Goal:** Test whether news helps under nonlinear capacity.
+**Acceptance:**
+- [ ] `src/modeling/baseline.py` extended: GradientBoostingRegressor alongside Ridge; models × {price, +news-basic, +news-advanced}
+- [ ] Comparison matrix over pk_t+1/5/10: Ridge vs GBM × feature sets → ΔR²/ΔRMSE
+- [ ] Output: `comparison_report.md` updated with the nonlinear verdict
+**Verify:** report answers "does news help under nonlinear models + advanced features + 30 tickers?"
+
+

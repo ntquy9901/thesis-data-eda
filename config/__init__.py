@@ -44,9 +44,9 @@ VN30_TICKERS = [
     "SSI", "STB", "TCB", "TPB", "VCB", "VHM", "VIB", "VIC", "VJC", "VNM"
 ]
 
-# EDA scope (per EDA Guide / PRD §14) — representative VN30 subset for the 10-phase EDA.
-# The pipeline scales to all of VN30_TICKERS by changing only this list.
-EDA_TICKERS = ["VCB", "FPT", "HPG", "SSI", "MWG"]
+# EDA scope (per EDA Guide / PRD §14). Scaled to the FULL VN30 in Epic 8 (Story 8-1)
+# — broader evidence base for the nonlinear modeling comparison.
+EDA_TICKERS = list(VN30_TICKERS)
 EDA_OUTPUT_DIR = PROJECT_ROOT / "eda_output"
 
 # Vietnam market configuration

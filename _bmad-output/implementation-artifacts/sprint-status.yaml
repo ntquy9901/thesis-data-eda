@@ -93,4 +93,11 @@ development_status:
   7-2-baseline-comparison: done
   epic-7-retrospective: optional
 
+  # Epic 8: Advanced Modeling (nonlinear + richer news + 30 tickers)
+  epic-8: in-progress
+  8-1-scale-30-tickers: in-progress
+  8-2-advanced-news-features: backlog
+  8-3-nonlinear-comparison: backlog
+  epic-8-retrospective: optional
+
 action_items: []
