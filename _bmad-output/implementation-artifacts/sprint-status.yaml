@@ -88,9 +88,9 @@ development_status:
   epic-6-retrospective: optional
 
   # Epic 7: Modeling — News Contribution to Parkinson Volatility
-  epic-7: in-progress
+  epic-7: done
   7-1-modeling-dataset: done
-  7-2-baseline-comparison: in-progress
+  7-2-baseline-comparison: done
   epic-7-retrospective: optional
 
 action_items: []
