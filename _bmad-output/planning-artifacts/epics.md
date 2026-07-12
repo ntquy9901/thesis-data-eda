@@ -276,5 +276,31 @@
 - [ ] Output appended to `significance_report.md`
 **Verify:** heterogeneity + event significance reported
 
+---
+
+## Epic 10: Web Dashboard — Interactive Visualization of Everything
+
+> A Streamlit dashboard reading `eda_output/` artifacts so all findings are explorable interactively (ticker/horizon/model selectors, plotly charts). No re-computation — pure visualization of existing artifacts.
+
+### Story 10.1: Dashboard scaffold + data layer + overview
+**Goal:** Runnable `streamlit run src/dashboard/app.py` with a data-loading layer + overview page.
+**Acceptance:**
+- [ ] `src/dashboard/data.py` — typed loaders for every artifact (panel, metrics, significance, charts findings) with caching
+- [ ] `src/dashboard/app.py` — multi-page Streamlit shell + Overview page (thesis conclusion, data profile, headline metrics)
+- [ ] `streamlit` added to deps; `uv sync`
+- [ ] Unit tests: loaders return expected shapes (mocked artifacts)
+**Verify:** `streamlit run` launches; overview renders
+
+### Story 10.2: Interactive pages (price, news, modeling, significance)
+**Goal:** Per-domain pages with selectors + plotly charts.
+**Acceptance:**
+- [ ] Price page: ticker selector → price/returns/vol, rolling vol, ACF/PACF
+- [ ] News page: sentiment dist/time-series/by-ticker, topics, coverage
+- [ ] Modeling page: metrics table, R² by horizon × feature-set, model selector
+- [ ] Significance page: DM p-values, bootstrap CI, per-ticker ΔR² bar
+- [ ] Smoke test: app imports + each page builder runs on sample data
+**Verify:** all pages render with real artifacts
+
+
 
 

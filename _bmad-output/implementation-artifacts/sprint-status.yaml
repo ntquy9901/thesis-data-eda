@@ -106,4 +106,10 @@ development_status:
   9-2-heterogeneity-event-test: done
   epic-9-retrospective: optional
 
+  # Epic 10: Web Dashboard
+  epic-10: done
+  10-1-dashboard-scaffold: done
+  10-2-interactive-pages: done
+  epic-10-retrospective: optional
+
 action_items: []
