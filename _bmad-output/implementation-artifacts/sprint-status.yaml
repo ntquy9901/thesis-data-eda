@@ -82,9 +82,9 @@ development_status:
   epic-5-retrospective: optional
 
   # Epic 6: Visualization & Final Report (Phase 10 + Final Report)
-  epic-6: backlog
-  6-1-visualization-pack: backlog
-  6-2-final-report: backlog
+  epic-6: done
+  6-1-visualization-pack: done
+  6-2-final-report: done
   epic-6-retrospective: optional
 
 action_items: []
