@@ -13,6 +13,7 @@ Outputs (under respective ``eda_output/<phase>/`` dirs + ``report/charts_index.m
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pandas as pd
@@ -54,6 +55,35 @@ def _save_scatter(x: pd.Series, y: pd.Series, path: Path, title: str, xlabel: st
     ax.set_title(title)
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
+    fig.tight_layout()
+    fig.savefig(path, dpi=120, bbox_inches="tight")
+    plt.close(fig)
+
+
+def _save_line(series: pd.Series, path: Path, title: str, ylabel: str) -> None:
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots(figsize=(11, 4))
+    series.plot(ax=ax, color="steelblue", linewidth=0.9)
+    ax.axhline(0, color="black", linewidth=0.6)
+    ax.set_title(title)
+    ax.set_ylabel(ylabel)
+    fig.tight_layout()
+    fig.savefig(path, dpi=120, bbox_inches="tight")
+    plt.close(fig)
+
+
+def _save_overlay(news: pd.Series, vol: pd.Series, path: Path, title: str) -> None:
+    """Twin-axis overlay: news volume (bars) + Parkinson vol (line)."""
+    import matplotlib.pyplot as plt
+
+    fig, ax1 = plt.subplots(figsize=(11, 4))
+    ax1.bar(news.index, news.values, color="lightsteelblue", width=1.0, label="news count")
+    ax1.set_ylabel("news count")
+    ax2 = ax1.twinx()
+    ax2.plot(vol.index, vol.values, color="darkred", linewidth=0.9, label="parkinson vol")
+    ax2.set_ylabel("parkinson vol")
+    ax1.set_title(title)
     fig.tight_layout()
     fig.savefig(path, dpi=120, bbox_inches="tight")
     plt.close(fig)
@@ -140,6 +170,70 @@ def run_phase() -> list[Path]:
             _save_hist(sent, p, "Sentiment distribution")
             written.append(p)
             chart_index.append("4. sentiment_distribution.png (news/)")
+
+    # 4b. Sentiment time series (daily mean across tickers with news)
+    if sparse.exists():
+        sp = pd.read_parquet(sparse)
+        sp["trading_date"] = pd.to_datetime(sp["trading_date"])
+        daily_sent = sp.dropna(subset=["sentiment_mean"]).groupby("trading_date")["sentiment_mean"].mean()
+        if not daily_sent.empty:
+            p = phase_output_dir("news") / "sentiment_time_series.png"
+            _save_line(daily_sent, p, "Daily mean sentiment (across tickers)", "mean sentiment")
+            written.append(p)
+            chart_index.append("4b. sentiment_time_series.png (news/)")
+
+    # 4c. News by source
+    src_json = EDA_OUTPUT_DIR / "news" / "source_report.json"
+    if src_json.exists():
+        counts = pd.Series(json.loads(src_json.read_text(encoding="utf-8")).get("source_counts", {}))
+        counts = counts.sort_values(ascending=False)
+        if not counts.empty:
+            p = phase_output_dir("news") / "news_by_source.png"
+            _save_bar(counts, p, "News articles by source", "count")
+            written.append(p)
+            chart_index.append("4c. news_by_source.png (news/)")
+
+    # 4d. Topic distribution (sum of topic flags across the advanced panel)
+    adv = EDA_OUTPUT_DIR / "modeling" / "advanced_news_features.parquet"
+    if adv.exists():
+        adf = pd.read_parquet(adv)
+        topic_cols = [c for c in adf.columns if c.startswith("topic_")]
+        if topic_cols:
+            sums = adf[topic_cols].sum().sort_values(ascending=False)
+            sums.index = [c.replace("topic_", "").replace("_count", "") for c in sums.index]
+            p = phase_output_dir("news") / "topic_distribution.png"
+            _save_bar(sums, p, "News topic distribution", "article-days")
+            written.append(p)
+            chart_index.append("4d. topic_distribution.png (news/)")
+
+    # 4e. Sentiment by ticker
+    if sparse.exists():
+        sp = pd.read_parquet(sparse)
+        by_t = sp.dropna(subset=["sentiment_mean"]).groupby("ticker")["sentiment_mean"].mean().sort_values()
+        if not by_t.empty:
+            p = phase_output_dir("news") / "sentiment_by_ticker.png"
+            _save_bar(by_t, p, "Mean sentiment by ticker", "mean sentiment")
+            written.append(p)
+            chart_index.append("4e. sentiment_by_ticker.png (news/)")
+
+    # 4f. News × price overlay (aggregate news count vs mean Parkinson vol)
+    if sparse.exists():
+        sp = pd.read_parquet(sparse)
+        sp["trading_date"] = pd.to_datetime(sp["trading_date"])
+        daily_news = sp.groupby("trading_date")["news_count_1d"].sum()
+        pk_frames = []
+        for tk in EDA_TICKERS:
+            pq = EDA_OUTPUT_DIR / "price" / f"price_metrics_{tk}.parquet"
+            if pq.exists():
+                d = pd.read_parquet(pq)[["date", "parkinson_vol"]]
+                d["date"] = pd.to_datetime(d["date"])
+                pk_frames.append(d)
+        if pk_frames:
+            pk = pd.concat(pk_frames).groupby("date")["parkinson_vol"].mean()
+            p = phase_output_dir("news") / "news_price_overlay.png"
+            _save_overlay(daily_news, pk, p, "News volume vs Parkinson volatility (aggregate)")
+            written.append(p)
+            chart_index.append("4f. news_price_overlay.png (news/)")
 
     # 5 + 6. Return + volatility distribution
     rv = _load_returns_vol()
