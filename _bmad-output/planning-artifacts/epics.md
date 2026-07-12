@@ -191,3 +191,33 @@
 - **Sprint 1:** Epic 1 + Epic 2 (foundation + price EDA) — unblocks all downstream phases.
 - **Sprint 2:** Epic 3 + Epic 4 (news EDA + relationship/event study).
 - **Sprint 3:** Epic 5 + Epic 6 (feature/leakage + viz/report) — produces final deliverable.
+- **Sprint 4:** Epic 7 (modeling) — quantifies the news↔volatility relationship.
+
+---
+
+## Epic 7: Modeling — News Contribution to Parkinson Volatility
+
+> Consumes EDA outputs. Aligns with the sibling `stock_vol_prediction01` baselines, which predict **Parkinson** vol using HAR features (daily/weekly/monthly rolling means). Goal: quantify how much news features improve vol prediction.
+
+### Story 7.1: Modeling dataset (HAR + news + targets, leakage-safe split)
+**Goal:** Build a train-ready feature matrix with a strict time-based split.
+**Acceptance:**
+- [ ] `src/modeling/dataset.py` → HAR features on parkinson_vol (1d/5d/22d rolling means) joined with news features (news_count_1d/3d/5d, days_since_last_news, sentiment_mean) + targets pk_t+1/+5/+10
+- [ ] Time-based split: train ≤ 2024-12-31, test ≥ 2025-01-01 (NO random split, no shuffling)
+- [ ] NaN handling: rows missing target dropped; news NaN preserved (model handles or impute-fit-on-train-only)
+- [ ] Output: `eda_output/modeling/dataset_<ticker>.parquet` (or panel) + split summary
+- [ ] Unit test: train dates all < test dates; HAR features use trailing windows only (no look-ahead)
+**Verify:** split monotonic; HAR unit test passes
+**FR:** FR-017, FR-013
+
+### Story 7.2: Baseline models + news-contribution comparison
+**Goal:** Train HAR (price-only) vs HAR+news; compare.
+**Acceptance:**
+- [ ] `src/modeling/baseline.py` → train both models per horizon (pk_t+1/+5/+10) on the 5-ticker panel
+- [ ] Metrics: RMSE, MAE, R², QLIKE, directional accuracy (align with sibling baselines)
+- [ ] Comparison table: per-horizon ΔRMSE/ΔR² (news vs no-news) → news contribution
+- [ ] Output: `eda_output/modeling/metrics.csv` + `comparison_report.md`
+- [ ] Unit test: metrics computed on synthetic data are correct; no data leakage (fit on train only)
+**Verify:** comparison_report quantifies news contribution (positive/negative/neutral)
+**FR:** FR-016 (candidate-feature validation), modeling extension
+
