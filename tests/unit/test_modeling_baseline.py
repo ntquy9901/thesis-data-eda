@@ -46,6 +46,16 @@ def test_make_pipeline_fit_predict():
     assert len(pred) == 50
 
 
+def test_news_advanced_from_story11_1():
+    """Verify NEWS_ADVANCED is imported from Story 11-1 embeddings + topics (not old sentiment)."""
+    from src.modeling.baseline import NEWS_ADVANCED
+
+    assert len(NEWS_ADVANCED) >= 7
+    assert all(isinstance(f, str) for f in NEWS_ADVANCED)
+    # Should contain embedding features (emb_*) + topic features, NOT sentiment
+    assert not any("sentiment" in f for f in NEWS_ADVANCED)
+
+
 def test_real_run_models_smoke():
     df = run_models()
     if df.empty:

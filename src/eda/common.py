@@ -33,6 +33,8 @@ EDA_SUBDIRS: list[str] = [
     "feature_engineering",  # Phase 8
     "leakage",  # Phase 9
     "report",  # Final report
+    "news_embedding",  # Phase 11 (Story 11-1)
+    "uncertainty",  # Phase 14 (Story 12-2)
 ]
 
 

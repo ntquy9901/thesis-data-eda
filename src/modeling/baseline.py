@@ -22,14 +22,12 @@ import pandas as pd
 
 from src.eda.common import EDA_OUTPUT_DIR
 from src.modeling.dataset import SPLIT_DATE, TARGETS, build_panel
+from src.modeling.features import (
+    ADV_FEATURES as NEWS_ADVANCED,  # Story 11-1: embedding + topic features
+)
 
 PRICE_FEATURES = ["har_daily", "har_weekly", "har_monthly", "atr_14", "realized_vol_5d", "realized_vol_20d"]
 NEWS_FEATURES = ["news_count_1d", "news_count_3d", "news_count_5d", "days_since_last_news", "sentiment_mean"]
-NEWS_ADVANCED = [
-    "event_weighted_count", "abs_sentiment", "sentiment_std", "neg_news_count", "pos_news_count",
-    "topic_earnings_count", "topic_dividend_count", "topic_ma_count",
-    "topic_management_count", "topic_regulation_count", "topic_macro_count", "topic_sector_count",
-]
 FEATURE_SETS = {
     "price": PRICE_FEATURES,
     "price+news_basic": PRICE_FEATURES + NEWS_FEATURES,

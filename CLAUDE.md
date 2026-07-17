@@ -77,17 +77,21 @@ For multi-step tasks, state a brief plan with per-step verify checks.
 A task is done only when ALL are true:
 - Code directly satisfies the requested change; no unrelated refactor.
 - **Tests:** when behavior changes, write/run unit tests and ensure **>= 80% of the CHANGED lines are covered**, measured by **diff-coverage** (NOT total): produce a coverage report for the change, then run a diff-coverage gate (e.g. `diff-cover <coverage-report> --fail-under=80`). Ensure the change is committed or staged so the diff is measurable.
-- **Checks run:** run the project's test + lint commands — or mark `Not run` with a reason. Never claim a command passed unless it actually ran.
+- **Checks run:** must run the project's test + lint commands. Never claim a command passed unless it actually ran.
 - **Lint scope:** exclude vendored / generated / third-party tooling directories from lint (they are not the project's own code).
 - **Code review (always):** must run a code review (e.g. `/bmad-code-review` in Claude Code, or a PR-based adversarial peer review) and address findings before marking done. **Required for every change — including non-production (docs/config/scripts) — no exception.** Summarize the result + actions in the report.
 - **Summary report:** generate a context-appropriate `reports/<YYYY-MM-DD_HHMM>_summaryOfUpdate_report.md` (not a rigid template).
-- **Smoke (gate):** at least one smoke test (tagged `smoke` — register the tag/marker in your test runner config) that boots the app/service and runs one happy-path (e.g. a health endpoint returns 200). The smoke command **must pass before done**. If a smoke test needs live infra / external services, mark `Not run` locally with a reason and run it in CI.
-- **Impact analysis:** before a non-trivial change, identify its blast radius — find all callers/dependents/consumers (grep the symbol; check the project's registration & integration points; note cross-repo consumers). Summarize what's affected + what was verified. Flag risk if blast radius is high and not fully test-covered.
-- **Similar check:** after a fix/pattern change, grep the same idiom/duplicate across the repo and any sibling / shared-scaffolding repos. Apply the same change where applicable, or list remaining instances as a follow-up. Don't fix one of N copies silently.
+- **Smoke (gate):** at least one smoke test (tagged `smoke` — register the tag/marker in your test runner config) that boots the app/service and runs one happy-path (e.g. a health endpoint returns 200). The smoke command **must pass before done**. If a smoke test needs live infra / external services, must run that smoke test.
+- **Impact analysis:** before a non-trivial change, identify its blast radius — find all callers/dependents/consumers (grep the symbol; check the project's registration & integration points; note cross-repo consumers). Summarize what's affected + what was verified. Flag risk if blast radius is high and not fully test-covered. If verifying impacts failed, must fix failures.
+- **Similar check:** after a fix/pattern change, grep the same idiom/duplicate across the repo and any sibling / shared-scaffolding repos. Apply the same change where applicable. Must report and don't fix one of N copies silently.
 
-## Testing quality rules (ENFORCED — learned from Epic 1 review)
-Line coverage alone does NOT prove quality. The Epic-1 adversarial review found 5 real bugs (date mass-NaT, tz-aware crash, NaN-counted-as-duplicate, dead `known_tickers` code, missing acceptance criteria) while helper line-coverage was 100%. Therefore, for every story:
-- **Run the diff-coverage GATE, not just `pytest --cov`.** Exact command: `uv run pytest tests/unit --cov=src --cov-report=xml -q && diff-cover coverage.xml --fail-under=80 --compare-branch origin/main`. A green `pytest --cov 100%` is NOT sufficient — `diff-cover` must pass on the changed lines. If it reports <80%, add tests for the uncovered (usually runner/I/O) lines before done.
+## Testing quality rules (ENFORCED)
+Line coverage alone does NOT prove quality. The adversarial review found 5 real bugs (date mass-NaT, tz-aware crash, NaN-counted-as-duplicate, dead `known_tickers` code, missing acceptance criteria) while helper line-coverage was 100%. Therefore, for every story:
+- **Code coverage GATE (MANDATORY):** 
+  - **C0 (line coverage) = 100%** on changed lines (all executable lines must be executed in tests)
+  - **C1 (branch coverage) ≥ 80%** on changed lines (all conditional branches must be covered; >80% acceptable where exhaustive coverage is infeasible)
+  - Command: `uv run pytest tests/unit --cov=src --cov-report=xml -q && diff-cover coverage.xml --fail-under=100 --compare-branch origin/main` (for C0); then verify C1 ≥80% in the coverage report
+  - A green `pytest --cov 100%` is NOT sufficient — `diff-cover` on changed lines only is the gate
 - **Cover I/O runners, not only pure helpers.** Unit tests of pure functions miss the bugs in data-loading/report-writing code. Every `run_phase()` / report-builder function must have an integration test (monkeypatch file paths → tmp fixtures) before its story is done.
 - **Data-pipeline tests must include a real-data-sample smoke.** Synthetic fixtures miss encoding (UTF-8 vs cp1252), mixed date formats (ISO vs DD/MM), mixed timezones, and schema drift across sources. At least one test per phase reads a SMALL slice of the real source data and asserts it runs without exception and emits sane output.
 - **Code review is `/bmad-code-review` (3-layer: Blind Hunter + Edge Case Hunter + Acceptance Auditor), run BEFORE marking done.** Self-review is NOT a substitute. Address all confirmed findings (critical/major) before done; document minors as follow-ups.
@@ -118,6 +122,16 @@ When a change is done, **generate** a concise, context-appropriate markdown summ
   - `hsc_articles.csv` - HSC news articles
   - `cafef_candidates.jsonl` - Candidate articles for crawling
   - PDF extraction data in `pdf/`, `pdf_ssi/`, `macro/` subdirectories
+  - `objective/` subdirectory (added 2026-07-17) - tier-classified crawl with richer schema
+    (`document_id, source, source_tier, url, publish_time, crawl_time, company_code,
+    company_name, title, raw_text, language, category, event_type, attachment_urls,
+    checksum, raw_path`):
+    - `news_unenriched_vnexpress_records.csv`, `..._nld_records.csv`, `..._thanhnien_records.csv`,
+      `..._tuoitre_records.csv`, `..._vietnamplus_records.csv` — **tier2** (mainstream press,
+      objective/factual reporting)
+    - `vietstock_records.csv`, `vsdc_records.csv` — **tier3** (securities-firm analysis/commentary)
+    - `objective_v<date>.csv` — a separate rolling consolidated snapshot (vietstock+vsdc only;
+      NOT a union of all tier2+tier3 sources — do not assume it is)
 - **Price data files available:**
   - `prices/` - Individual stock OHLCV files (format: `{TICKER}_ohlcv.csv`)
   - Available tickers: ACB, BCM, BID, BVH, CTG, FPT, GAS, GVR, HDB, HPG, MBB, MSN, MWG, NVL, PDR, PLX, POW, SAB, SHB, SSB, SSI, STB, TCB, TPB, VCB, VHM, VIB, VIC, VJC, VNM (VN30 constituents)

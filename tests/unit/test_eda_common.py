@@ -24,7 +24,7 @@ def test_eda_tickers_is_vn30_subset():
 
 
 def test_eda_subdirs_match_guide():
-    """Subdirs must cover all 8 output areas from the EDA Guide."""
+    """Subdirs must cover the 8 EDA Guide output areas + news_embedding (Story 11-1)."""
     expected = {
         "profiling",
         "quality",
@@ -34,6 +34,8 @@ def test_eda_subdirs_match_guide():
         "feature_engineering",
         "leakage",
         "report",
+        "news_embedding",
+        "uncertainty",
     }
     assert set(EDA_SUBDIRS) == expected
 

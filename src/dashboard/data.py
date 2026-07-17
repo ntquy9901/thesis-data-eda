@@ -55,6 +55,56 @@ def load_event_study(base: Path = EDA_OUTPUT_DIR) -> pd.DataFrame:
     return pd.read_csv(p) if p.exists() else pd.DataFrame()
 
 
+def load_news_embedding_source_stats(base: Path = EDA_OUTPUT_DIR) -> pd.DataFrame:
+    p = _p(base, "news_embedding", "source_stats.csv")
+    return pd.read_csv(p) if p.exists() else pd.DataFrame()
+
+
+def load_news_embedding_coverage(base: Path = EDA_OUTPUT_DIR) -> pd.DataFrame:
+    p = _p(base, "news_embedding", "embedding_coverage.csv")
+    return pd.read_csv(p) if p.exists() else pd.DataFrame()
+
+
+def load_embedding_price_corr(base: Path = EDA_OUTPUT_DIR) -> pd.DataFrame:
+    p = _p(base, "news_embedding", "embedding_price_corr.csv")
+    return pd.read_csv(p) if p.exists() else pd.DataFrame()
+
+
+def load_extended_horizon_corr(base: Path = EDA_OUTPUT_DIR) -> pd.DataFrame:
+    p = _p(base, "news_embedding", "extended_horizon_corr.csv")
+    return pd.read_csv(p) if p.exists() else pd.DataFrame()
+
+
+def load_articles_list(group: str, source: str | None = None, limit: int | None = 200) -> pd.DataFrame:
+    """Raw article rows (title/lead/source/pub_date/url) for the dashboard's list-view page —
+    reads directly from crawl_data (NOT an eda_output artifact), for manual spot-check reading.
+    ``group``: "khach_quan" or "tong_hop" — see ``src.features.news_embeddings.GROUP_SOURCES``
+    for the canonical (dynamically-discovered) source classification. If ``source`` is given,
+    restricts to that single source; otherwise loads every discovered source in the group."""
+    from src.data.discover_news import discover_source_files, load_source
+    from src.features.news_embeddings import GROUP_SOURCES
+
+    wanted = {source} if source else GROUP_SOURCES.get(group, set())
+    frames = []
+    for s, path in discover_source_files().items():
+        if s not in wanted:
+            continue
+        try:
+            frames.append(load_source(s, path))
+        except Exception:
+            continue
+    if not frames:
+        return pd.DataFrame()
+    df = pd.concat(frames, ignore_index=True)
+    if df.empty:
+        return df
+    cols = [c for c in ["source", "pub_date", "title", "lead", "url", "category"] if c in df.columns]
+    out = df[cols].copy()
+    if "pub_date" in out.columns:
+        out = out.sort_values("pub_date", ascending=False)
+    return out.head(limit) if limit else out
+
+
 def load_json(name: str, base: Path = EDA_OUTPUT_DIR) -> dict:
     """Load a JSON artifact by relative path, e.g. 'news/sentiment_summary.json'."""
     p = _p(base, *name.split("/"))
@@ -95,3 +145,21 @@ def headline_metrics(base: Path = EDA_OUTPUT_DIR) -> dict:
             "dm_pvalue": dm.get("dm_pvalue"),
         }
     return out
+
+
+def load_novelty_price_corr(base: Path = EDA_OUTPUT_DIR) -> pd.DataFrame:
+    """Phase 13: Novelty-based correlation with price."""
+    p = _p(base, "news_embedding", "novelty_price_corr.csv")
+    return pd.read_csv(p) if p.exists() else pd.DataFrame()
+
+
+def load_uncertainty_price_corr(base: Path = EDA_OUTPUT_DIR) -> pd.DataFrame:
+    """Phase 14: Uncertainty index correlation with price."""
+    p = _p(base, "uncertainty", "uncertainty_price_corr.csv")
+    return pd.read_csv(p) if p.exists() else pd.DataFrame()
+
+
+def load_decay_price_corr(base: Path = EDA_OUTPUT_DIR) -> pd.DataFrame:
+    """Phase 15: Temporal decay of embedding signal."""
+    p = _p(base, "news_embedding", "decay_price_corr.csv")
+    return pd.read_csv(p) if p.exists() else pd.DataFrame()

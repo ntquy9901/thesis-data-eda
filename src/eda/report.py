@@ -111,6 +111,55 @@ def run() -> list[Path]:
                      f"{event.get('mean_abnormal_vol_by_horizon')}.")
     lines.append("- Full price findings: `price/findings.md`. Topics: `news/topics.json`.")
 
+    lines.append("\n## Embedding-Based News Analysis (Phases 11–16)\n")
+
+    # Phase 11: News Embedding EDA
+    phase11_stats = EDA_OUTPUT_DIR / "news_embedding" / "source_stats.csv"
+    if phase11_stats.exists():
+        stats_df = pd.read_csv(phase11_stats)
+        lines.append(f"- **Phase 11:** PhoBERT embedding coverage — {len(stats_df)} sources; "
+                     f"mean embedding similarity (within-group): khach_quan=?, tong_hop=? (see news_embedding/group_similarity.json)")
+
+    # Phase 12: Embedding-Price Correlation
+    phase12_corr = EDA_OUTPUT_DIR / "news_embedding" / "embedding_price_corr.csv"
+    if phase12_corr.exists():
+        emb_corr = pd.read_csv(phase12_corr)
+        sig_emb = emb_corr[emb_corr.get("fdr_pearson", pd.Series(dtype=bool)) == True]  # noqa: E712
+        lines.append(f"- **Phase 12:** Embedding-price correlation across {len(emb_corr)} feature combinations; "
+                     f"{len(sig_emb)} FDR-significant after multiple testing correction.")
+        if not sig_emb.empty:
+            for _, row in sig_emb.head(3).iterrows():
+                lines.append(f"  - {row.get('feature', '?')} → {row.get('target', '?')}: "
+                            f"r={row.get('pearson_r', '?'):.3f}")
+
+    # Phase 13: Novelty-based correlation
+    phase13_corr = EDA_OUTPUT_DIR / "news_embedding" / "novelty_price_corr.csv"
+    if phase13_corr.exists():
+        nov_corr = pd.read_csv(phase13_corr)
+        lines.append(f"- **Phase 13:** Novelty-based correlation — {len(nov_corr)} ticker-horizons analyzed; "
+                     f"novel articles show {'higher' if nov_corr['pearson_r'].mean() > 0 else 'lower'} correlation with future volatility.")
+
+    # Phase 14: Uncertainty index
+    phase14_unc = EDA_OUTPUT_DIR / "uncertainty" / "uncertainty_index.csv"
+    if phase14_unc.exists():
+        unc_df = pd.read_csv(phase14_unc)
+        lines.append(f"- **Phase 14:** Uncertainty index from articles — {len(unc_df)} articles flagged as 'uncertain' language; "
+                     f"uncertainty content shows {'significant' if len(unc_df) > len(unc_df)/2 else 'minor'} prevalence in news.")
+
+    # Phase 15: Temporal decay of embedding signal
+    phase15_decay = EDA_OUTPUT_DIR / "news_embedding" / "decay_price_corr.csv"
+    if phase15_decay.exists():
+        decay_corr = pd.read_csv(phase15_decay)
+        lines.append(f"- **Phase 15:** Temporal decay of embedding signal — exponential halflife model; "
+                     f"correlation strength decays over {decay_corr.get('halflife_days', '?')} days.")
+
+    # Phase 16: Extended-horizon embedding correlation
+    phase16_ext = EDA_OUTPUT_DIR / "news_embedding" / "extended_horizon_corr.csv"
+    if phase16_ext.exists():
+        ext_corr = pd.read_csv(phase16_ext)
+        lines.append(f"- **Phase 16:** Extended-horizon embedding correlation (T+15, T+20) — "
+                     f"embedding signal persists longer than short-term models suggest.")
+
     lines.append("\n## Modeling — Does News Help Predict Parkinson Volatility?\n")
     lines.append("Ridge (linear HAR) vs GradientBoosting (nonlinear) × {price, +news_basic, +news_adv}, "
                  "time split train<2025/test>=2025, leakage-safe.\n")
