@@ -11,7 +11,8 @@ Runs comprehensive analysis:
 6. Dashboard update
 7. Summary reporting
 
-Run: PYTHONIOENCODING=utf-8 python -m src.eda.run_night_analysis
+Run: uv run python -m src.eda.run_night_analysis
+(must use `uv run` — the venv, not system Python, has statsmodels/sklearn/etc.)
 """
 
 import sys
@@ -155,10 +156,10 @@ def main():
     log_section("TASK 4: Modeling & Regression Analysis")
 
     try:
-        from src.modeling.baseline import train_and_compare_all
+        from src.modeling.baseline import run as run_baseline_modeling
         log_msg("Running baseline modeling comparison...")
-        metrics_path = train_and_compare_all()
-        log_msg(f"  Baseline models complete: {metrics_path}")
+        metrics_paths = run_baseline_modeling()
+        log_msg(f"  Baseline models complete: {metrics_paths}")
         results['modeling'] = True
     except Exception as e:
         log_msg(f"Modeling error: {type(e).__name__}: {str(e)[:200]}", 'ERROR')
@@ -170,14 +171,15 @@ def main():
     log_section("TASK 5: PCA Analysis")
 
     try:
-        from src.features.news_embeddings import build_comparable_group_embeddings, _reduce
+        from src.features.news_embeddings import build_comparable_group_embeddings
         log_msg("Performing PCA reduction...")
+        # build_comparable_group_embeddings() already PCA-reduces (raw_* -> emb_*) with a
+        # shared basis across groups; do not call _reduce() again on its output (no raw_*
+        # columns left -> 0 features).
         emb_dict = build_comparable_group_embeddings()
-        pca_results = {}
         for group, df in emb_dict.items():
-            reduced = _reduce(df, dim=32)
-            pca_results[group] = reduced.shape
-            log_msg(f"  PCA[{group}]: {reduced.shape[0]} samples, 32 dims")
+            n_dims = sum(1 for c in df.columns if c.startswith("emb_"))
+            log_msg(f"  PCA[{group}]: {df.shape[0]} samples, {n_dims} dims")
         results['pca'] = True
     except Exception as e:
         log_msg(f"PCA error: {type(e).__name__}: {str(e)[:200]}", 'ERROR')
@@ -202,10 +204,10 @@ def main():
     log_section("TASK 7: Summary Report Generation")
 
     try:
-        from src.eda.report import generate_final_report
+        from src.eda.report import run as generate_final_report
         log_msg("Generating final EDA report...")
-        report_path = generate_final_report()
-        log_msg(f"  Report generated: {report_path}")
+        report_paths = generate_final_report()
+        log_msg(f"  Report generated: {report_paths}")
         results['report'] = True
     except Exception as e:
         log_msg(f"Report generation error: {type(e).__name__}: {str(e)[:200]}", 'ERROR')
