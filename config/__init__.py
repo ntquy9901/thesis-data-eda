@@ -16,7 +16,7 @@ CONFIG_DIR = PROJECT_ROOT / "config"
 # All raw data MUST come from these directories only
 
 # News data source
-CRAWL_DATA_ROOT = Path("D:/bmad-projects/crawl_data/data")
+CRAWL_DATA_ROOT = Path("C:/luanvan/crawl_data/data")
 CRAWL_NEWS_ARTICLES = CRAWL_DATA_ROOT / "news_articles.csv"
 CRAWL_CAFEF_ARTICLES = CRAWL_DATA_ROOT / "cafef_articles.csv"
 CRAWL_SSI_ARTICLES = CRAWL_DATA_ROOT / "ssi_articles.csv"
@@ -28,7 +28,7 @@ CRAWL_PDF_SSI_DIR = CRAWL_DATA_ROOT / "pdf_ssi"
 CRAWL_MACRO_DIR = CRAWL_DATA_ROOT / "macro"
 
 # Price data source
-PRICE_DATA_ROOT = Path("D:/bmad-projects/stock_vol_prediction01/data/raw")
+PRICE_DATA_ROOT = Path("C:/luanvan/stock_vol_prediction01/data/raw")
 PRICE_DATA_DIR = PRICE_DATA_ROOT / "prices"
 VN30_DIR = PRICE_DATA_ROOT / "vn30"
 VN100_DIR = PRICE_DATA_ROOT / "vn100"
