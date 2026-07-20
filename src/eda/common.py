@@ -35,6 +35,8 @@ EDA_SUBDIRS: list[str] = [
     "report",  # Final report
     "news_embedding",  # Phase 11 (Story 11-1)
     "uncertainty",  # Phase 14 (Story 12-2)
+    "level1_significance",  # Phase 17 (Story 14-1)
+    "event_study_by_type",  # Phase 18 (Story 14-2)
 ]
 
 

@@ -64,10 +64,20 @@ def _infer_source_name(path: Path) -> str:
 
 def discover_source_files() -> dict[str, Path]:
     """{source_name: path} for every schema-valid news CSV under ``CRAWL_DATA_ROOT``
-    (recursive), excluding known backups/duplicates/snapshots."""
+    (recursive), excluding known backups/duplicates/snapshots.
+
+    Two files under different subdirectories can infer the SAME source name (e.g. a
+    top-level ``thanhnien_articles.csv`` historical backfill alongside
+    ``objective/news_unenriched_thanhnien_records.csv``, a distinct tier-classified crawl —
+    verified 2026-07-18: 0 overlapping URLs between the two). Silently keeping only the
+    alphabetically-last path would drop the other source's articles entirely. Instead, when
+    a name collision is detected, EVERY colliding path is disambiguated by its parent
+    directory (e.g. ``thanhnien`` + ``thanhnien_objective``) so no source is ever silently
+    dropped — the single-file (non-colliding) case is unaffected (bare name, as before)."""
     found: dict[str, Path] = {}
     if not CRAWL_DATA_ROOT.exists():
         return found
+    candidates: list[tuple[str, Path]] = []
     for p in sorted(CRAWL_DATA_ROOT.rglob("*.csv")):
         if p.name in _DENYLIST or p.name.startswith(_SNAPSHOT_PREFIX):
             continue
@@ -77,15 +87,34 @@ def discover_source_files() -> dict[str, Path]:
             continue
         if not (OLD_SCHEMA_COLS <= cols or NEW_SCHEMA_COLS <= cols):
             continue
-        found[_infer_source_name(p)] = p
+        candidates.append((_infer_source_name(p), p))
+
+    by_name: dict[str, list[Path]] = {}
+    for name, p in candidates:
+        by_name.setdefault(name, []).append(p)
+
+    for name, paths in by_name.items():
+        if len(paths) == 1:
+            found[name] = paths[0]
+            continue
+        for p in paths:
+            suffix = p.parent.name if p.parent != CRAWL_DATA_ROOT else "root"
+            disambiguated = f"{name}_{suffix}"
+            found[disambiguated] = p
     return found
 
 
 def load_source(source: str, path: Path) -> pd.DataFrame:
-    """Load one discovered file, normalized to include ``source``/``pub_date``/``lead`` columns
-    regardless of which schema the file uses."""
+    """Load one discovered file, normalized to include ``source``/``pub_date``/``lead``/``url``
+    columns regardless of which schema the file uses."""
     df = pd.read_csv(path, dtype=str, low_memory=False)
     cols = set(df.columns)
+    if "url" not in cols and "article_url" in cols:
+        # cafef_articles.csv uses `article_url` instead of `url` — without this rename, every
+        # downstream consumer that requires a `url` column (article-embedding cache, ticker
+        # explode) silently drops 100% of this source's rows via dropna(subset=["url"]).
+        df = df.rename(columns={"article_url": "url"})
+        cols = set(df.columns)
     if NEW_SCHEMA_COLS <= cols:
         df["pub_date"] = pd.to_datetime(df["publish_time"], errors="coerce", utc=True).dt.tz_localize(None)
         df["lead"] = df.get("raw_text", pd.Series(index=df.index)).fillna("")

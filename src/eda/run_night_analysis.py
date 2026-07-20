@@ -13,15 +13,20 @@ Runs comprehensive analysis:
 
 Run: uv run python -m src.eda.run_night_analysis
 (must use `uv run` — the venv, not system Python, has statsmodels/sklearn/etc.)
+
+Flags:
+  --skip-tests   Skip Task 1 (full regression suite, ~13.5min bottleneck) when
+                 only the analysis/dashboard steps need to be re-run.
 """
 
-import sys
+import argparse
+import json
 import os
+import subprocess
+import sys
+import traceback
 from datetime import datetime
 from pathlib import Path
-import traceback
-import json
-import subprocess
 
 # Force UTF-8 encoding
 os.environ['PYTHONIOENCODING'] = 'utf-8'
@@ -74,14 +79,20 @@ def run_command(cmd_name, cmd, cwd=None):
         traceback.print_exc()
         return False
 
-def main():
-    """Run full night analysis pipeline."""
+def main(skip_tests: bool = False):
+    """Run full night analysis pipeline.
+
+    ``skip_tests`` bypasses Task 1 (the ~13.5min full regression suite) for
+    re-runs where only the analysis/dashboard steps changed.
+    """
     start_time = datetime.now()
 
     # Initialize log file
     with open(LOG_FILE, 'w', encoding='utf-8') as f:
         f.write(f"# Night Analysis Run\n\n")
         f.write(f"Started: {start_time.isoformat()}\n\n")
+        if skip_tests:
+            f.write("Task 1 (regression tests) SKIPPED (--skip-tests)\n\n")
 
     log_section("NIGHT ANALYSIS PIPELINE - START")
 
@@ -92,11 +103,15 @@ def main():
     # =========================================================================
     log_section("TASK 1: Running Regression Tests")
 
-    test_cmd = "uv run pytest tests/unit -v --tb=short -q"
-    results['regression_tests'] = run_command(
-        "Full test suite",
-        test_cmd
-    )
+    if skip_tests:
+        log_msg("SKIPPED (--skip-tests flag set)")
+        results['regression_tests'] = None
+    else:
+        test_cmd = "uv run pytest tests/unit -v --tb=short -q"
+        results['regression_tests'] = run_command(
+            "Full test suite",
+            test_cmd
+        )
 
     # =========================================================================
     # TASK 2: Embedding Generation & Validation
@@ -114,10 +129,20 @@ def main():
         log_msg(f"Embeddings error: {e}", 'ERROR')
         results['embeddings'] = False
 
+    try:
+        from src.features.sentiment_scores import run as run_sentiment_scores
+        log_msg("Building Level-1 sentiment/event-type features...")
+        sent_paths = run_sentiment_scores()
+        log_msg(f"  Sentiment features complete: {sent_paths}")
+        results['sentiment_features'] = bool(sent_paths)
+    except Exception as e:
+        log_msg(f"Sentiment features error: {type(e).__name__}: {str(e)[:200]}", 'ERROR')
+        results['sentiment_features'] = False
+
     # =========================================================================
-    # TASK 3: Run EDA Phases 11-16
+    # TASK 3: Run EDA Phases 11-18
     # =========================================================================
-    log_section("TASK 3: Running EDA Phases 11-16")
+    log_section("TASK 3: Running EDA Phases 11-18")
 
     eda_phases = [
         ('phase11_news_embedding_eda', 'Phase 11: News Embedding EDA'),
@@ -125,6 +150,8 @@ def main():
         ('phase13_novelty_correlation', 'Phase 13: Novelty Correlation'),
         ('phase14_uncertainty_index', 'Phase 14: Uncertainty Index'),
         ('phase15_temporal_decay_correlation', 'Phase 15: Temporal Decay Correlation'),
+        ('phase17_level1_significance', 'Phase 17: Level-1 Sentiment/Event Significance'),
+        ('phase18_event_study_by_type', 'Phase 18: Event Study by Type (Level-2)'),
     ]
 
     # Check for Phase 16
@@ -241,13 +268,26 @@ def main():
     log_msg(f"Summary JSON: {summary_json}")
     log_msg(f"\nResults ready for dashboard at http://localhost:8501")
 
-    # Count passes
-    pass_count = sum(1 for v in results.values() if v is True or (isinstance(v, dict) and sum(v.values())))
-    total_count = len(results) + len(phase_results)
+    # Count passes. `eda_phases` is a sub-dict of 6 individual phase results, so it's
+    # unpacked and counted per-phase (not as a single task) to match `total_count`,
+    # which already adds `len(phase_results)` separately from `len(results)`.
+    # Skipped tasks (result is None) count toward neither pass nor total.
+    non_phase_results = {k: v for k, v in results.items() if k != 'eda_phases'}
+    pass_count = sum(1 for v in non_phase_results.values() if v is True)
+    pass_count += sum(1 for v in phase_results.values() if v is True)
+    skipped_count = sum(1 for v in non_phase_results.values() if v is None)
+    total_count = len(non_phase_results) + len(phase_results) - skipped_count
 
-    log_msg(f"\nPassed: {pass_count}/{total_count} tasks")
+    log_msg(f"\nPassed: {pass_count}/{total_count} tasks" + (f" ({skipped_count} skipped)" if skipped_count else ""))
 
     return 0 if pass_count >= (total_count - 1) else 1  # Allow 1 failure
 
 if __name__ == '__main__':
-    sys.exit(main())
+    parser = argparse.ArgumentParser(description="Night-run analysis pipeline")
+    parser.add_argument(
+        "--skip-tests",
+        action="store_true",
+        help="Skip Task 1 (full regression suite, ~13.5min) for analysis-only re-runs",
+    )
+    args = parser.parse_args()
+    sys.exit(main(skip_tests=args.skip_tests))

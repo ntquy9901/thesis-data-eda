@@ -1,0 +1,21 @@
+{
+  "started": "2026-07-18T09:55:01.420034",
+  "completed": "2026-07-18T09:58:50.018041",
+  "duration_seconds": 228.598007,
+  "results": {
+    "regression_tests": null,
+    "embeddings": true,
+    "eda_phases": {
+      "phase11_news_embedding_eda": true,
+      "phase12_embedding_price_correlation": true,
+      "phase13_novelty_correlation": true,
+      "phase14_uncertainty_index": true,
+      "phase15_temporal_decay_correlation": true,
+      "phase16_extended_horizon_correlation": true
+    },
+    "modeling": true,
+    "pca": true,
+    "dashboard": true,
+    "report": true
+  }
+}

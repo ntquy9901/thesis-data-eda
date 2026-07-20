@@ -6,6 +6,7 @@ import pytest
 
 from src.modeling import significance as sig
 from src.modeling.significance import (
+    _ablation_block,
     bootstrap_delta,
     diebold_mariano,
     event_abnormal_ttest,
@@ -42,6 +43,46 @@ def test_event_abnormal_ttest_parses(tmp_path):
     out = event_abnormal_ttest(csv)
     assert 1 in out and 5 in out
     assert isinstance(out[1]["pvalue"], float)
+
+
+def _fake_panel_for_ablation(n_per_period: int = 150) -> pd.DataFrame:
+    """Synthetic (ticker, date) panel with real PRICE_FEATURES + target columns, enough rows
+    on both sides of SPLIT_DATE to fit price vs price+X models."""
+    from src.modeling.baseline import PRICE_FEATURES
+    from src.modeling.dataset import SPLIT_DATE, TARGETS
+
+    rng = np.random.default_rng(0)
+    train_dates = pd.date_range("2020-01-01", periods=n_per_period)
+    test_dates = pd.date_range(pd.Timestamp(SPLIT_DATE), periods=n_per_period)
+    dates = train_dates.append(test_dates)
+    n = len(dates)
+    df = pd.DataFrame({"ticker": ["AAA"] * n, "date": dates})
+    for c in PRICE_FEATURES:
+        df[c] = rng.normal(0, 1, n)
+    for c in TARGETS:
+        df[c] = rng.uniform(0, 0.01, n)
+    return df
+
+
+def test_ablation_block_ridge_and_gbm_run_without_error():
+    panel = _fake_panel_for_ablation()
+    lines: list[str] = []
+    out = _ablation_block(panel, ["price"], "ridge", lines, "Test section")
+    assert "price" in out
+    assert any("Test section" in line for line in lines)
+    # each target present in the fake panel got a DM+bootstrap entry
+    from src.modeling.dataset import TARGETS
+
+    for t in TARGETS:
+        assert t in out["price"]
+        assert "dm" in out["price"][t] and "bootstrap" in out["price"][t]
+
+
+def test_ablation_block_gbm_model_type_used():
+    panel = _fake_panel_for_ablation()
+    lines: list[str] = []
+    out = _ablation_block(panel, ["price"], "gbm", lines, "GBM section")
+    assert "price" in out and out["price"]
 
 
 def test_real_significance_run_smoke():

@@ -8,8 +8,10 @@ from src.eda import phase05_relationship as p5
 from src.eda import phase06_event_study as p6
 from src.eda.phase05_relationship import (
     cross_correlation,
+    distance_correlation,
     fdr_correct,
     granger_causality,
+    kendall_tau,
     mutual_information,
     pearson_spearman,
 )
@@ -65,6 +67,46 @@ def test_cross_correlation_finds_lag():
 def test_fdr_correct_flags():
     flags = fdr_correct([0.001, 0.5, 0.002, 0.9])
     assert flags[0] and not flags[1]  # 0.001 sig, 0.5 not (truthy — robust to np.bool_)
+
+
+def test_kendall_tau_perfect():
+    x = pd.Series([1, 2, 3, 4, 5], dtype=float)
+    kt = kendall_tau(x, x)
+    assert abs(kt["kendall_tau"] - 1.0) < 1e-6
+    assert kt["n"] == 5
+
+
+def test_kendall_tau_too_few():
+    kt = kendall_tau(pd.Series([1.0, 2.0]), pd.Series([2.0, 3.0]))
+    assert kt["kendall_tau"] is None
+
+
+def test_kendall_tau_constant_input():
+    kt = kendall_tau(pd.Series([1.0, 1.0, 1.0]), pd.Series([1.0, 2.0, 3.0]))
+    assert kt["kendall_tau"] is None
+
+
+def test_distance_correlation_independent_near_zero():
+    rng = np.random.default_rng(0)
+    x = pd.Series(rng.normal(0, 1, 300))
+    y = pd.Series(rng.normal(0, 1, 300))  # independent of x
+    dc = distance_correlation(x, y)
+    assert dc is not None and 0 <= dc < 0.2
+
+
+def test_distance_correlation_nonlinear_dependence():
+    # y = x^2: Pearson ~ 0 (symmetric), but distance correlation should catch the dependence.
+    x = pd.Series(np.linspace(-5, 5, 300))
+    y = x**2
+    dc = distance_correlation(x, y)
+    ps = pearson_spearman(x, y)
+    assert dc is not None and dc > 0.3
+    assert abs(ps["pearson_r"]) < 0.1
+
+
+def test_distance_correlation_too_few():
+    dc = distance_correlation(pd.Series([1.0, 2.0]), pd.Series([2.0, 3.0]))
+    assert dc is None
 
 
 # ============ phase06 ============

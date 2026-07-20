@@ -12,3 +12,21 @@
 - `vndirect (tong_hop)` — `D:\bmad-projects\crawl_data\data\vndirect_articles.csv` (969 rows)
 - `vnexpress (khach_quan)` — `D:\bmad-projects\crawl_data\data\objective\news_unenriched_vnexpress_records.csv` (103 rows)
 - `vsdc (tong_hop)` — `D:\bmad-projects\crawl_data\data\objective\vsdc_records.csv` (5 rows)
+
+## 2026-07-18 17:59:14
+
+- `cafef (khach_quan)` — `D:\bmad-projects\crawl_data\data\cafef_articles.csv` (4067 rows)
+- `hsc (khach_quan)` — `D:\bmad-projects\crawl_data\data\hsc_articles.csv` (6 rows)
+- `nld (khach_quan)` — `D:\bmad-projects\crawl_data\data\objective\news_unenriched_nld_records.csv` (50 rows)
+- `ssi (tong_hop)` — `D:\bmad-projects\crawl_data\data\ssi_articles.csv` (1867 rows)
+- `thanhnien_objective (khach_quan)` — `D:\bmad-projects\crawl_data\data\objective\news_unenriched_thanhnien_records.csv` (150 rows)
+- `thanhnien_root (khach_quan)` — `D:\bmad-projects\crawl_data\data\thanhnien_articles.csv` (387169 rows)
+- `tuoitre_objective (khach_quan)` — `D:\bmad-projects\crawl_data\data\objective\news_unenriched_tuoitre_records.csv` (66 rows)
+- `tuoitre_root (khach_quan)` — `D:\bmad-projects\crawl_data\data\tuoitre_articles.csv` (283568 rows)
+- `vietnamplus_objective (khach_quan)` — `D:\bmad-projects\crawl_data\data\objective\news_unenriched_vietnamplus_records.csv` (153 rows)
+- `vietnamplus_root (khach_quan)` — `D:\bmad-projects\crawl_data\data\vietnamplus_articles.csv` (773152 rows)
+- `vietstock (tong_hop)` — `D:\bmad-projects\crawl_data\data\objective\vietstock_records.csv` (669 rows)
+- `vndirect (tong_hop)` — `D:\bmad-projects\crawl_data\data\vndirect_articles.csv` (2043 rows)
+- `vnexpress_objective (unclassified)` — `D:\bmad-projects\crawl_data\data\objective\news_unenriched_vnexpress_records.csv` (103 rows)
+- `vnexpress_root (unclassified)` — `D:\bmad-projects\crawl_data\data\vnexpress_articles.csv` (13938 rows)
+- `vsdc (tong_hop)` — `D:\bmad-projects\crawl_data\data\objective\vsdc_records.csv` (5 rows)

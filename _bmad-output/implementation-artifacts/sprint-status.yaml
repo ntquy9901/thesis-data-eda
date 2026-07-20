@@ -135,4 +135,10 @@ development_status:
   13-5-dashboard-results: done
   epic-13-retrospective: optional
 
+  # Epic 14: Level 1/2 Feature Evaluation (per docs/gpt-guide guideline)
+  epic-14: done
+  14-1-level1-sentiment-significance: done
+  14-2-level2-event-study-by-type: done
+  epic-14-retrospective: optional
+
 action_items: []

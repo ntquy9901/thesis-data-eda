@@ -21,6 +21,10 @@ import numpy as np
 import pandas as pd
 
 from src.eda.common import EDA_OUTPUT_DIR
+from src.features.sentiment_scores import (
+    EVENT_TYPE_COLS,  # Story 14-1: event-type counts (guideline Level 1 "event type")
+    SENTIMENT_SCORE_COLS,  # Story 14-1: positive/negative/fear/optimism/uncertainty scores
+)
 from src.modeling.dataset import SPLIT_DATE, TARGETS, build_panel
 from src.modeling.features import (
     ADV_FEATURES as NEWS_ADVANCED,  # Story 11-1: embedding + topic features
@@ -32,6 +36,12 @@ FEATURE_SETS = {
     "price": PRICE_FEATURES,
     "price+news_basic": PRICE_FEATURES + NEWS_FEATURES,
     "price+news_adv": PRICE_FEATURES + NEWS_FEATURES + NEWS_ADVANCED,
+    # Story 14-1 — per-family ablation isolating the Level-1 guideline features from the
+    # bundled "news_adv" (embedding+topic) set above, so their individual OOS contribution
+    # is visible rather than hidden inside one aggregate ΔR².
+    "price+sentiment5": PRICE_FEATURES + SENTIMENT_SCORE_COLS,
+    "price+event_type": PRICE_FEATURES + EVENT_TYPE_COLS,
+    "price+sentiment5+event_type": PRICE_FEATURES + SENTIMENT_SCORE_COLS + EVENT_TYPE_COLS,
 }
 MODEL_TYPES = ["ridge", "gbm"]
 EPS = 1e-12

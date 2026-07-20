@@ -11,3 +11,8 @@ NIGHT ANALYSIS PIPELINE - START
 TASK 1: Running Regression Tests
 ======================================================================
 [2026-07-18 01:08:03] [INFO] Starting: Full test suite
+[2026-07-18 01:18:13] [ERROR] FAIL: Full test suite (exit code 143)
+
+======================================================================
+TASK 2: Embedding Generation & Validation
+======================================================================

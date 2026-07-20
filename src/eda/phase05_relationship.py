@@ -83,6 +83,33 @@ def mutual_information(x: pd.Series, y: pd.Series) -> float | None:
     return round(float(mi[0]), 4)
 
 
+def kendall_tau(x: pd.Series, y: pd.Series) -> dict:
+    """Kendall's tau-b + p-value (NaN-dropped, aligned). Rank-based like Spearman but more
+    robust to outliers/ties — Level-1 guideline requires it alongside Pearson/Spearman/MI."""
+    from scipy.stats import kendalltau
+
+    df = pd.DataFrame({"x": x, "y": y}).dropna()
+    if len(df) < 3 or df["x"].nunique() <= 1 or df["y"].nunique() <= 1:
+        return {"n": int(len(df)), "kendall_tau": None, "kendall_p": None}
+    tau, p = kendalltau(df["x"], df["y"])
+    return {"n": int(len(df)), "kendall_tau": _round(tau), "kendall_p": _round(p)}
+
+
+def distance_correlation(x: pd.Series, y: pd.Series, max_n: int = 2000, seed: int = 0) -> float | None:
+    """Distance correlation (Székely & Rizzo) — captures ANY dependence (linear or not), unlike
+    Pearson. In [0, 1]; 0 iff independent. O(n^2) memory/compute, so large panels are
+    subsampled (deterministic seed) to ``max_n`` rows rather than skipped outright."""
+    import dcor
+
+    df = pd.DataFrame({"x": x, "y": y}).dropna()
+    if len(df) < 10:
+        return None
+    if len(df) > max_n:
+        df = df.sample(n=max_n, random_state=seed)
+    dc = dcor.distance_correlation(df["x"].to_numpy(dtype=float), df["y"].to_numpy(dtype=float))
+    return round(float(dc), 4)
+
+
 def granger_causality(cause: pd.Series, effect: pd.Series, maxlag: int = MAX_LAG) -> dict:
     """Granger causality: does `cause` predict `effect`? Returns min-p over lags."""
     df = pd.DataFrame({"cause": cause, "effect": effect}).dropna()

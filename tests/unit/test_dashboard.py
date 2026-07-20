@@ -122,6 +122,8 @@ def test_app_imports():
 
     assert set(app.PAGES.keys()) == {
         "Overview", "Price EDA", "News EDA", "News Embedding", "Embedding Correlation",
+        "Novelty Correlation", "Uncertainty Index", "Temporal Decay",
+        "Level-1 Significance", "Event Study by Type",
         "Đọc tin tức", "Modeling", "Significance",
     }
 
@@ -164,10 +166,15 @@ def test_app_runs_all_pages_headless():
         pytest.skip("no artifacts for dashboard")
     from streamlit.testing.v1 import AppTest
 
-    at = AppTest.from_file("src/dashboard/app.py", default_timeout=60)
+    # Higher timeout than the default 60s: "Đọc tin tức" reads the full discovered news corpus
+    # (~1.45M rows post-2026-07-18 backfill), which is slow relative to the other artifact-only
+    # pages.
+    at = AppTest.from_file("src/dashboard/app.py", default_timeout=180)
     at.run()
     assert not at.exception, f"default page raised: {at.exception}"
     for page in ["Price EDA", "News EDA", "News Embedding", "Embedding Correlation",
+                 "Novelty Correlation", "Uncertainty Index", "Temporal Decay",
+                 "Level-1 Significance", "Event Study by Type",
                  "Đọc tin tức", "Modeling", "Significance", "Overview"]:
         at.sidebar.radio(key="page").set_value(page)
         at.run()

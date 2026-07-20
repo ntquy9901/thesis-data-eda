@@ -49,7 +49,17 @@ TRAIN_CUTOFF = "2020-01-01"  # kept independent of src.modeling.dataset.SPLIT_DA
 # must stay <= SPLIT_DATE to avoid leaking test-period rows into the PCA fit.
 PCA_DIM = 32
 RAW_DIM = 768
-KHACH_QUAN_SOURCES = {"cafef", "hsc", "vnexpress", "thanhnien", "tuoitre", "nld", "vietnamplus"}
+KHACH_QUAN_SOURCES = {
+    "cafef", "hsc", "vnexpress", "thanhnien", "tuoitre", "nld", "vietnamplus",
+    # 2026-07-18: thanhnien/tuoitre/vietnamplus each got a 2nd, non-overlapping crawl file
+    # (a new top-level historical backfill alongside the existing objective/ tier-classified
+    # file) -> discover_news.discover_source_files() now disambiguates the name collision by
+    # parent directory ("_root"/"_objective" suffix) instead of silently dropping one file.
+    # Both variants are still mainstream press -> both belong in khach_quan.
+    "thanhnien_root", "thanhnien_objective",
+    "tuoitre_root", "tuoitre_objective",
+    "vietnamplus_root", "vietnamplus_objective",
+}
 TONG_HOP_SOURCES = {"ssi", "vndirect", "vnstock", "vietstock", "vsdc"}
 GROUP_SOURCES = {"khach_quan": KHACH_QUAN_SOURCES, "tong_hop": TONG_HOP_SOURCES}
 TICKER_PATTERN = re.compile(r"\b(" + "|".join(VN30_TICKERS) + r")\b", re.IGNORECASE)
@@ -94,7 +104,14 @@ def _load_group(group: str) -> pd.DataFrame:
     news = news[news["_text"].str.len() > 0].reset_index(drop=True)
     if "url" not in news.columns:
         raise ValueError(f"group={group!r} news frame has no 'url' column; cannot cache incrementally")
-    return news.dropna(subset=["url"]).drop_duplicates(subset=["url"]).reset_index(drop=True)
+    news = news.dropna(subset=["url"]).drop_duplicates(subset=["url"]).reset_index(drop=True)
+    # PhoBERT encoding is the expensive step (Docstring: "the EXPENSIVE step"), and
+    # `_explode_tickers` downstream discards every article that never mentions a VN30 ticker
+    # anyway (verified 2026-07-18: only ~0.3% of the ~1.45M-row post-backfill corpus mentions
+    # one) — filtering BEFORE encoding changes zero output rows but cuts the CPU-only encode
+    # job from an estimated ~37h to ~8min. Safe because every consumer of this pipeline
+    # (`_build_raw` -> `_explode_tickers`) already only keeps ticker-matched rows.
+    return news[news["_text"].str.contains(TICKER_PATTERN, regex=True, na=False)].reset_index(drop=True)
 
 
 def _article_cache_path(source: str):

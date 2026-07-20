@@ -73,10 +73,10 @@ def bootstrap_delta(y: np.ndarray, pred_a: np.ndarray, pred_b: np.ndarray,
     }
 
 
-def _fit_pair(panel: pd.DataFrame, target: str, model_type: str = "ridge"):
-    """Fit price vs +news_adv models; return test y + both predictions."""
+def _fit_pair(panel: pd.DataFrame, target: str, model_type: str = "ridge", compare_fset: str = "price+news_adv"):
+    """Fit price vs ``compare_fset`` models; return test y + both predictions."""
     out = {}
-    for fset in ["price", "price+news_adv"]:
+    for fset in ["price", compare_fset]:
         Xtr, ytr, Xte, yte, _, _ = _split_xy(panel, FEATURE_SETS[fset], target, SPLIT_DATE)
         if len(Xtr) == 0 or len(Xte) == 0:
             return None
@@ -85,19 +85,20 @@ def _fit_pair(panel: pd.DataFrame, target: str, model_type: str = "ridge"):
     return out
 
 
-def per_ticker_delta_r2(panel: pd.DataFrame, target: str, model_type: str = "ridge") -> pd.Series:
-    """ΔR² (price+news_adv − price) per ticker; NaN where a ticker can't be fit."""
+def per_ticker_delta_r2(panel: pd.DataFrame, target: str, model_type: str = "ridge",
+                         compare_fset: str = "price+news_adv") -> pd.Series:
+    """ΔR² (``compare_fset`` − price) per ticker; NaN where a ticker can't be fit."""
     deltas = {}
     for ticker, sub in panel.groupby("ticker"):
         sub = sub.dropna(subset=[target])
         if len(sub) < 100:
             continue
         try:
-            res = _fit_pair(sub, target, model_type)
+            res = _fit_pair(sub, target, model_type, compare_fset)
             if res is None:
                 continue
             ra = compute_metrics(res["price"]["y"], res["price"]["pred"])["r2"]
-            rb = compute_metrics(res["price+news_adv"]["y"], res["price+news_adv"]["pred"])["r2"]
+            rb = compute_metrics(res[compare_fset]["y"], res[compare_fset]["pred"])["r2"]
             deltas[ticker] = round(rb - ra, 4)
         except Exception:
             continue
@@ -119,6 +120,32 @@ def event_abnormal_ttest(event_csv: Path) -> dict:
         t, p = ttest_1samp(a, 0.0)
         out[int(h)] = {"mean": round(float(a.mean()), 6), "t": round(float(t), 3),
                        "pvalue": round(float(p), 4), "significant": bool(p < 0.05)}
+    return out
+
+
+def _ablation_block(panel: pd.DataFrame, fsets: list[str], model_type: str,
+                     lines: list[str], section_title: str) -> dict:
+    """DM test + bootstrap CI (price vs each of ``fsets``) for one model type; appends a
+    markdown section to ``lines`` in place and returns the same structure for the JSON report."""
+    out: dict = {}
+    lines.append(f"\n## {section_title}\n")
+    for fset in fsets:
+        out[fset] = {}
+        lines.append(f"\n### {fset}")
+        for target in TARGETS:
+            if target not in panel.columns:
+                continue
+            res = _fit_pair(panel, target, model_type, compare_fset=fset)
+            if res is None:
+                continue
+            dm = diebold_mariano(res["price"]["y"] - res["price"]["pred"],
+                                 res[fset]["y"] - res[fset]["pred"])
+            boot = bootstrap_delta(res[fset]["y"], res["price"]["pred"], res[fset]["pred"])
+            out[fset][target] = {"dm": dm, "bootstrap": boot}
+            sig = "NOT significant" if dm["dm_pvalue"] is None or dm["dm_pvalue"] > 0.05 else "significant"
+            ci = boot["delta_r2_ci"]
+            lines.append(f"- **{target}**: DM p={dm['dm_pvalue']} → {sig}; "
+                         f"ΔR² 95% CI [{ci[0] if ci else None}, {ci[1] if ci else None}]")
     return out
 
 
@@ -166,6 +193,22 @@ def run() -> list[Path]:
                          f"{'significant' if v['significant'] else 'not significant'}")
     else:
         lines.append("- (no event_study.csv)")
+
+    # Story 14-1 — per-family ablation: isolate sentiment5/event_type from the bundled
+    # "news_adv" set above, so their individual OOS contribution (DM test + bootstrap CI) is
+    # visible rather than hidden inside one aggregate ΔR² (guideline Level-1/Gate-F requirement).
+    fam_fsets = ["price+sentiment5", "price+event_type", "price+sentiment5+event_type"]
+    results["per_family"] = _ablation_block(panel, fam_fsets, "ridge", lines,
+                                             "Per-family ablation (Level-1 guideline: sentiment / event-type, Ridge)")
+
+    # Same ablation with GBM (nonlinear, invariant to multicollinearity) — checks whether the
+    # Ridge-only null on the COMBINED set (sentiment5+event_type) is a multicollinearity
+    # artifact (trees don't need decorrelated inputs) or GBM independently ignores these
+    # features too (as it already does for the bundled news_adv set — see metrics.csv, where
+    # GBM predictions are byte-identical across price/price+sentiment5/price+event_type/
+    # price+sentiment5+event_type, i.e. it never splits on any of them).
+    results["per_family_gbm"] = _ablation_block(panel, fam_fsets, "gbm", lines,
+                                                 "Per-family ablation (Level-1 guideline: sentiment / event-type, GBM — nonlinear, checks multicollinearity hypothesis)")
 
     outdir = EDA_OUTPUT_DIR / "modeling"
     outdir.mkdir(parents=True, exist_ok=True)

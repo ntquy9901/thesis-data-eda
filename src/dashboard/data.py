@@ -163,3 +163,15 @@ def load_decay_price_corr(base: Path = EDA_OUTPUT_DIR) -> pd.DataFrame:
     """Phase 15: Temporal decay of embedding signal."""
     p = _p(base, "news_embedding", "decay_price_corr.csv")
     return pd.read_csv(p) if p.exists() else pd.DataFrame()
+
+
+def load_level1_corr(base: Path = EDA_OUTPUT_DIR) -> pd.DataFrame:
+    """Phase 17: Level-1 sentiment/event-type significance (Pearson/Spearman/Kendall/MI/dcor)."""
+    p = _p(base, "level1_significance", "level1_corr.csv")
+    return pd.read_csv(p) if p.exists() else pd.DataFrame()
+
+
+def load_event_study_by_type(base: Path = EDA_OUTPUT_DIR) -> pd.DataFrame:
+    """Phase 18: Level-2 event study segmented by event type (with CAR)."""
+    p = _p(base, "event_study_by_type", "event_study_by_type.csv")
+    return pd.read_csv(p) if p.exists() else pd.DataFrame()

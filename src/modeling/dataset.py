@@ -89,6 +89,14 @@ def build_panel() -> pd.DataFrame:
         adv = pd.read_parquet(adv_path)
         adv["date"] = pd.to_datetime(adv["date"]).dt.normalize()
         panel = panel.merge(adv, on=["ticker", "date"], how="left")
+
+    # Level-1 sentiment/event-type features (Story 14-1): positive/negative/fear/optimism/
+    # uncertainty scores + 7 event-type counts.
+    sent_path = EDA_OUTPUT_DIR / "modeling" / "sentiment_features.parquet"
+    if sent_path.exists():
+        sent = pd.read_parquet(sent_path)
+        sent["date"] = pd.to_datetime(sent["date"]).dt.normalize()
+        panel = panel.merge(sent, on=["ticker", "date"], how="left")
     return panel
 
 
