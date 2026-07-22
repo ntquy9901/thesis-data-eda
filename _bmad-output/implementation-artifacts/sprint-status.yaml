@@ -136,10 +136,11 @@ development_status:
   epic-22-retrospective: done
 
   epic-23: in-progress
-  23-1-per-ticker-rf-baseline: ready-for-dev
+  23-1-per-ticker-rf-baseline: done
   23-2-news-feature-impact: ready-for-dev
   23-3-multi-window-robustness: ready-for-dev
   23-4-multi-horizon-extension: ready-for-dev
   23-5-final-synthesis-report: ready-for-dev
+  23-6-research-agent-infrastructure: done
 
 action_items: []

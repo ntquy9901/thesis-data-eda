@@ -131,3 +131,10 @@ temp/
 .bmad-loop/runs/
 .bmad-loop/cache/
 .bmad-loop/policy.toml
+
+# Research agent (regenerable)
+results/research_agent/experiments.db
+results/research_agent/logs/
+results/research_agent/reports/
+results/research_agent/consolidated_data.json
+results/research_agent/agent_pids.json

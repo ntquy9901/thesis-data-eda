@@ -1,6 +1,7 @@
 # Story 23.1: Per-ticker RF Baseline
 
-Status: ready-for-dev
+Status: done
+baseline_revision: 0472e800e044b0ba48ecf70035c9ee3a9db437f7
 
 ## Story
 
@@ -19,11 +20,11 @@ so that I have a per-ticker nonlinear baseline to compare against price+news mod
 
 ## Tasks / Subtasks
 
-- [ ] Add per-ticker RF evaluation function in `src/modeling/per_ticker_rf.py` (new module)
-  - [ ] Wire train/test split by ticker with configurable train_window_days and test_period
-  - [ ] Implement full metrics computation (extend `compute_metrics` from baseline.py)
-  - [ ] Save results CSV + summary statistics
-- [ ] Verify: run and confirm 30 tickers x 4 targets = 120 rows in output, no NaN metrics
+- [x] Add per-ticker RF evaluation function in `src/modeling/per_ticker_rf.py` (new module)
+  - [x] Wire train/test split by ticker with configurable train_window_days and test_period
+  - [x] Implement full metrics computation (extend `compute_metrics` from baseline.py)
+  - [x] Save results CSV + summary statistics
+- [x] Verify: run and confirm 30 tickers x 4 targets = 120 rows in output, no NaN metrics
 
 ## Dev Notes
 
