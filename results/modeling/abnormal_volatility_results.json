@@ -1,0 +1,14 @@
+{
+  "spike_classification":{
+    "price_PR_AUC":0.4582,
+    "news_PR_AUC":0.4513
+  },
+  "magnitude_regression":{
+    "price_r2":-0.008453,
+    "news_r2":-0.012918
+  },
+  "two_stage_expected":{
+    "price_r2":-0.132772,
+    "news_r2":-0.130332
+  }
+}

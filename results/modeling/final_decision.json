@@ -1,0 +1,208 @@
+{
+  "matrix": {
+    "T+1_all_regimes": {
+      "delta_r2": 0.000736,
+      "dm_pvalue": null,
+      "decision": "DROP"
+    },
+    "T+1_high_vol": {
+      "delta_r2": null,
+      "dm_pvalue": null,
+      "decision": null
+    },
+    "T+5_high_vol": {
+      "delta_r2": 0.000807,
+      "dm_pvalue": null,
+      "decision": "DROP"
+    },
+    "T+10_high_vol": {
+      "delta_r2": -0.000707,
+      "dm_pvalue": null,
+      "decision": "DROP"
+    },
+    "T+22_high_vol": {
+      "delta_r2": 0.000928,
+      "dm_pvalue": null,
+      "decision": "DROP"
+    },
+    "sensitive_tickers": {
+      "delta_r2": 0.00115,
+      "dm_pvalue": null,
+      "decision": "CONDITIONAL"
+    },
+    "volatility_spike": {
+      "delta_r2": -0.0003,
+      "dm_pvalue": null,
+      "decision": "DROP"
+    },
+    "production_deployment": {
+      "decision": "NO"
+    }
+  },
+  "stopping_criteria": {
+    "criteria": {
+      "delta_r2_positive_majority_folds": false,
+      "block_bootstrap_ci_mostly_positive": [],
+      "qlike_and_another_metric_improve": false,
+      "min_50pct_tickers_not_harmed": false,
+      "result_not_driven_by_single_ticker": false,
+      "beats_placebo": false,
+      "improvement_in_at_least_two_time_periods": false,
+      "feature_importance_stable": false,
+      "signal_replicable_different_seed": false,
+      "improvement_large_enough_for_embedding_cost": false
+    },
+    "score": 0,
+    "max_score": 10
+  },
+  "input_results": {
+    "horizon_comparison": [
+      {
+        "target": "pk_t+1",
+        "n": 21128,
+        "price_r2": 0.27915,
+        "news_r2": 0.279886,
+        "delta_r2": 0.000736,
+        "delta_rmse": -2.5e-07
+      },
+      {
+        "target": "pk_t+5",
+        "n": 21128,
+        "price_r2": 0.174816,
+        "news_r2": 0.175623,
+        "delta_r2": 0.000807,
+        "delta_rmse": -2.5e-07
+      },
+      {
+        "target": "pk_t+10",
+        "n": 21128,
+        "price_r2": 0.122894,
+        "news_r2": 0.122187,
+        "delta_r2": -0.000707,
+        "delta_rmse": 2.2e-07
+      },
+      {
+        "target": "pk_t+22",
+        "n": 21128,
+        "price_r2": 0.055,
+        "news_r2": 0.055928,
+        "delta_r2": 0.000928,
+        "delta_rmse": -2.8e-07
+      }
+    ],
+    "regime_analysis": {
+      "pk_t+1_high_vol_subset": {
+        "threshold": 0.8,
+        "n_high": 7630,
+        "n_train": 7164,
+        "n_test": 466,
+        "price_only": {
+          "r2": 0.119184,
+          "rmse": 0.00096245,
+          "mae": 0.00071456
+        },
+        "price_news": {
+          "r2": 0.072576,
+          "rmse": 0.00098759,
+          "mae": 0.00073567
+        },
+        "delta_r2": -0.046608
+      },
+      "pk_t+1_evidence": {
+        "n_folds_positive": 1,
+        "n_folds_total": 3,
+        "dm_pvalue": 0.2702,
+        "dm_significant": false,
+        "ci_excludes_zero": false,
+        "placebo_better": true
+      },
+      "pk_t+5_high_vol_subset": {
+        "threshold": 0.8,
+        "n_high": 7630,
+        "n_train": 7164,
+        "n_test": 466,
+        "price_only": {
+          "r2": 0.018484,
+          "rmse": 0.00091765,
+          "mae": 0.00066255
+        },
+        "price_news": {
+          "r2": -0.026629,
+          "rmse": 0.00093851,
+          "mae": 0.00069793
+        },
+        "delta_r2": -0.045113
+      },
+      "pk_t+5_evidence": {
+        "n_folds_positive": 0,
+        "n_folds_total": 3,
+        "dm_pvalue": 0.0947,
+        "dm_significant": false,
+        "ci_excludes_zero": false,
+        "placebo_better": true
+      },
+      "pk_t+10_high_vol_subset": {
+        "threshold": 0.8,
+        "n_high": 7630,
+        "n_train": 7164,
+        "n_test": 466,
+        "price_only": {
+          "r2": 0.062229,
+          "rmse": 0.00076742,
+          "mae": 0.00058693
+        },
+        "price_news": {
+          "r2": -0.051188,
+          "rmse": 0.0008125,
+          "mae": 0.00065429
+        },
+        "delta_r2": -0.113417
+      },
+      "pk_t+10_evidence": {
+        "n_folds_positive": 0,
+        "n_folds_total": 3,
+        "dm_pvalue": 0.4173,
+        "dm_significant": false,
+        "ci_excludes_zero": false,
+        "placebo_better": true
+      },
+      "pk_t+22_high_vol_subset": {
+        "threshold": 0.8,
+        "n_high": 7630,
+        "n_train": 7164,
+        "n_test": 466,
+        "price_only": {
+          "r2": 0.051521,
+          "rmse": 0.00094446,
+          "mae": 0.00058974
+        },
+        "price_news": {
+          "r2": -0.066733,
+          "rmse": 0.0010016,
+          "mae": 0.00065729
+        },
+        "delta_r2": -0.118254
+      },
+      "pk_t+22_evidence": {
+        "n_folds_positive": 0,
+        "n_folds_total": 3,
+        "dm_pvalue": 0.2953,
+        "dm_significant": false,
+        "ci_excludes_zero": false,
+        "placebo_better": true
+      }
+    },
+    "conditional_model": {
+      "mean_r2": 0.1572055,
+      "mean_high_vol_r2": -0.797401375
+    },
+    "cross_analysis": {
+      "sensitive_high_vol_delta": 0.00115
+    },
+    "spike_classification": {
+      "price_PR_AUC": 0.3008,
+      "news_PR_AUC": 0.3005,
+      "news_minus_price_pr_auc": -0.0003
+    }
+  }
+}

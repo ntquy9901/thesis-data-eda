@@ -1,0 +1,11 @@
+{
+  "target": "pk_t+10",
+  "feature_set": "price+news_adv_full",
+  "oos_start": "2026-01-01",
+  "n_train": 194982,
+  "n_oos": 5642,
+  "r2": 0.183301,
+  "rmse": 0.00058056,
+  "mae": 0.00036742,
+  "qlike": 0.481186
+}

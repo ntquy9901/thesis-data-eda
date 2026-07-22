@@ -1,0 +1,194 @@
+{
+  "clusters": {
+    "sensitive": [
+      "CTG",
+      "PLX",
+      "POW",
+      "VIC"
+    ],
+    "neutral": [],
+    "insensitive": [
+      "ACB",
+      "BCM",
+      "BID",
+      "BVH",
+      "FPT",
+      "GAS",
+      "GVR",
+      "HDB",
+      "HPG",
+      "MBB",
+      "MSN",
+      "MWG",
+      "NVL",
+      "PDR",
+      "SAB",
+      "SHB",
+      "SSB",
+      "SSI",
+      "STB",
+      "TCB",
+      "TPB",
+      "VCB",
+      "VHM",
+      "VIB",
+      "VJC",
+      "VNM"
+    ]
+  },
+  "per_ticker": {
+    "ACB": {
+      "delta_r2": -0.162033,
+      "cluster": "insensitive",
+      "cluster_code": -1
+    },
+    "BCM": {
+      "delta_r2": -0.112309,
+      "cluster": "insensitive",
+      "cluster_code": -1
+    },
+    "BID": {
+      "delta_r2": -0.040546,
+      "cluster": "insensitive",
+      "cluster_code": -1
+    },
+    "BVH": {
+      "delta_r2": -0.093393,
+      "cluster": "insensitive",
+      "cluster_code": -1
+    },
+    "CTG": {
+      "delta_r2": 0.018388,
+      "cluster": "sensitive",
+      "cluster_code": 1
+    },
+    "FPT": {
+      "delta_r2": -0.184878,
+      "cluster": "insensitive",
+      "cluster_code": -1
+    },
+    "GAS": {
+      "delta_r2": -0.043373,
+      "cluster": "insensitive",
+      "cluster_code": -1
+    },
+    "GVR": {
+      "delta_r2": -0.014374,
+      "cluster": "insensitive",
+      "cluster_code": -1
+    },
+    "HDB": {
+      "delta_r2": -0.31428,
+      "cluster": "insensitive",
+      "cluster_code": -1
+    },
+    "HPG": {
+      "delta_r2": -0.045154,
+      "cluster": "insensitive",
+      "cluster_code": -1
+    },
+    "MBB": {
+      "delta_r2": -0.040802,
+      "cluster": "insensitive",
+      "cluster_code": -1
+    },
+    "MSN": {
+      "delta_r2": -0.029931,
+      "cluster": "insensitive",
+      "cluster_code": -1
+    },
+    "MWG": {
+      "delta_r2": -0.097463,
+      "cluster": "insensitive",
+      "cluster_code": -1
+    },
+    "NVL": {
+      "delta_r2": -0.001512,
+      "cluster": "insensitive",
+      "cluster_code": -1
+    },
+    "PDR": {
+      "delta_r2": -0.010112,
+      "cluster": "insensitive",
+      "cluster_code": -1
+    },
+    "PLX": {
+      "delta_r2": 0.008327,
+      "cluster": "sensitive",
+      "cluster_code": 1
+    },
+    "POW": {
+      "delta_r2": 0.014447,
+      "cluster": "sensitive",
+      "cluster_code": 1
+    },
+    "SAB": {
+      "delta_r2": -0.026221,
+      "cluster": "insensitive",
+      "cluster_code": -1
+    },
+    "SHB": {
+      "delta_r2": -0.611333,
+      "cluster": "insensitive",
+      "cluster_code": -1
+    },
+    "SSB": {
+      "delta_r2": -0.037203,
+      "cluster": "insensitive",
+      "cluster_code": -1
+    },
+    "SSI": {
+      "delta_r2": -0.130602,
+      "cluster": "insensitive",
+      "cluster_code": -1
+    },
+    "STB": {
+      "delta_r2": -0.014834,
+      "cluster": "insensitive",
+      "cluster_code": -1
+    },
+    "TCB": {
+      "delta_r2": -0.148988,
+      "cluster": "insensitive",
+      "cluster_code": -1
+    },
+    "TPB": {
+      "delta_r2": -0.003873,
+      "cluster": "insensitive",
+      "cluster_code": -1
+    },
+    "VCB": {
+      "delta_r2": -0.032162,
+      "cluster": "insensitive",
+      "cluster_code": -1
+    },
+    "VHM": {
+      "delta_r2": -0.015494,
+      "cluster": "insensitive",
+      "cluster_code": -1
+    },
+    "VIB": {
+      "delta_r2": -0.022965,
+      "cluster": "insensitive",
+      "cluster_code": -1
+    },
+    "VIC": {
+      "delta_r2": 0.029972,
+      "cluster": "sensitive",
+      "cluster_code": 1
+    },
+    "VJC": {
+      "delta_r2": -0.06333,
+      "cluster": "insensitive",
+      "cluster_code": -1
+    },
+    "VNM": {
+      "delta_r2": -0.005241,
+      "cluster": "insensitive",
+      "cluster_code": -1
+    }
+  },
+  "n_sensitive": 4,
+  "n_neutral": 0,
+  "n_insensitive": 26
+}

@@ -1,0 +1,66 @@
+{
+  "full_r2": -0.10461595926261547,
+  "target": "pk_t+10",
+  "groups": {
+    "basic_emb_legacy": {
+      "n_features": 32,
+      "full_r2": -0.10461595926261547,
+      "drop_r2": -0.104616,
+      "delta": 0.0
+    },
+    "kq_emb": {
+      "n_features": 33,
+      "full_r2": -0.10461595926261547,
+      "drop_r2": -0.10675,
+      "delta": -0.002134
+    },
+    "th_emb": {
+      "n_features": 33,
+      "full_r2": -0.10461595926261547,
+      "drop_r2": -0.1064,
+      "delta": -0.001784
+    },
+    "kq_th_emb_norm": {
+      "n_features": 2,
+      "full_r2": -0.10461595926261547,
+      "drop_r2": -0.104824,
+      "delta": -0.000208
+    },
+    "topic_counts": {
+      "n_features": 14,
+      "full_r2": -0.10461595926261547,
+      "drop_r2": -0.103817,
+      "delta": 0.000799
+    },
+    "ewma_30d": {
+      "n_features": 66,
+      "full_r2": -0.10461595926261547,
+      "drop_r2": -0.100367,
+      "delta": 0.004249
+    },
+    "ewma_multi": {
+      "n_features": 330,
+      "full_r2": -0.10461595926261547,
+      "drop_r2": 0.10319,
+      "delta": 0.207806
+    },
+    "novelty": {
+      "n_features": 2,
+      "full_r2": -0.10461595926261547,
+      "drop_r2": -0.104761,
+      "delta": -0.000146
+    },
+    "dispersion": {
+      "n_features": 2,
+      "full_r2": -0.10461595926261547,
+      "drop_r2": -0.104616,
+      "delta": 0.0
+    },
+    "max_shock": {
+      "n_features": 2,
+      "full_r2": -0.10461595926261547,
+      "drop_r2": -0.104616,
+      "delta": 0.0
+    }
+  }
+}

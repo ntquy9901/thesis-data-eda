@@ -1,0 +1,90 @@
+{
+  "pk_t+1": {
+    "target": "pk_t+1",
+    "price_only": {
+      "r2": 0.27915,
+      "rmse": 0.00049097,
+      "mae": 0.00027851
+    },
+    "price_news_direct": {
+      "r2": 0.279886,
+      "rmse": 0.00049072,
+      "mae": 0.0002798
+    },
+    "residual_news_model": {
+      "r2": 0.278988,
+      "rmse": 0.00049102,
+      "mae": 0.00027689
+    },
+    "delta_r2_resid_vs_price": -0.000162,
+    "delta_r2_direct_vs_price": 0.000736,
+    "n_train": 180036,
+    "n_test": 21128
+  },
+  "pk_t+5": {
+    "target": "pk_t+5",
+    "price_only": {
+      "r2": 0.174816,
+      "rmse": 0.00052734,
+      "mae": 0.00030412
+    },
+    "price_news_direct": {
+      "r2": 0.175623,
+      "rmse": 0.00052709,
+      "mae": 0.00030541
+    },
+    "residual_news_model": {
+      "r2": 0.173255,
+      "rmse": 0.00052784,
+      "mae": 0.00030021
+    },
+    "delta_r2_resid_vs_price": -0.001561,
+    "delta_r2_direct_vs_price": 0.000807,
+    "n_train": 180036,
+    "n_test": 20888
+  },
+  "pk_t+10": {
+    "target": "pk_t+10",
+    "price_only": {
+      "r2": 0.122894,
+      "rmse": 0.00054608,
+      "mae": 0.00031663
+    },
+    "price_news_direct": {
+      "r2": 0.122187,
+      "rmse": 0.0005463,
+      "mae": 0.00031795
+    },
+    "residual_news_model": {
+      "r2": 0.118418,
+      "rmse": 0.00054747,
+      "mae": 0.00031141
+    },
+    "delta_r2_resid_vs_price": -0.004476,
+    "delta_r2_direct_vs_price": -0.000707,
+    "n_train": 180036,
+    "n_test": 20588
+  },
+  "pk_t+22": {
+    "target": "pk_t+22",
+    "price_only": {
+      "r2": 0.055,
+      "rmse": 0.00057385,
+      "mae": 0.0003359
+    },
+    "price_news_direct": {
+      "r2": 0.055928,
+      "rmse": 0.00057357,
+      "mae": 0.0003373
+    },
+    "residual_news_model": {
+      "r2": 0.048532,
+      "rmse": 0.00057581,
+      "mae": 0.00032904
+    },
+    "delta_r2_resid_vs_price": -0.006468,
+    "delta_r2_direct_vs_price": 0.000928,
+    "n_train": 180036,
+    "n_test": 19868
+  }
+}

@@ -1,0 +1,110 @@
+{
+  "pk_t+1": {
+    "high_vol_subset": {
+      "threshold": 0.8,
+      "n_high": 7630,
+      "n_train": 7164,
+      "n_test": 466,
+      "price_only": {
+        "r2": 0.119184,
+        "rmse": 0.00096245,
+        "mae": 0.00071456
+      },
+      "price_news": {
+        "r2": 0.072576,
+        "rmse": 0.00098759,
+        "mae": 0.00073567
+      },
+      "delta_r2": -0.046608
+    },
+    "evidence": {
+      "n_folds_positive": 1,
+      "n_folds_total": 3,
+      "dm_pvalue": 0.2702,
+      "dm_significant": false,
+      "ci_excludes_zero": false,
+      "placebo_better": true
+    }
+  },
+  "pk_t+5": {
+    "high_vol_subset": {
+      "threshold": 0.8,
+      "n_high": 7630,
+      "n_train": 7164,
+      "n_test": 466,
+      "price_only": {
+        "r2": 0.018484,
+        "rmse": 0.00091765,
+        "mae": 0.00066255
+      },
+      "price_news": {
+        "r2": -0.026629,
+        "rmse": 0.00093851,
+        "mae": 0.00069793
+      },
+      "delta_r2": -0.045113
+    },
+    "evidence": {
+      "n_folds_positive": 0,
+      "n_folds_total": 3,
+      "dm_pvalue": 0.0947,
+      "dm_significant": false,
+      "ci_excludes_zero": false,
+      "placebo_better": true
+    }
+  },
+  "pk_t+10": {
+    "high_vol_subset": {
+      "threshold": 0.8,
+      "n_high": 7630,
+      "n_train": 7164,
+      "n_test": 466,
+      "price_only": {
+        "r2": 0.062229,
+        "rmse": 0.00076742,
+        "mae": 0.00058693
+      },
+      "price_news": {
+        "r2": -0.051188,
+        "rmse": 0.0008125,
+        "mae": 0.00065429
+      },
+      "delta_r2": -0.113417
+    },
+    "evidence": {
+      "n_folds_positive": 0,
+      "n_folds_total": 3,
+      "dm_pvalue": 0.4173,
+      "dm_significant": false,
+      "ci_excludes_zero": false,
+      "placebo_better": true
+    }
+  },
+  "pk_t+22": {
+    "high_vol_subset": {
+      "threshold": 0.8,
+      "n_high": 7630,
+      "n_train": 7164,
+      "n_test": 466,
+      "price_only": {
+        "r2": 0.051521,
+        "rmse": 0.00094446,
+        "mae": 0.00058974
+      },
+      "price_news": {
+        "r2": -0.066733,
+        "rmse": 0.0010016,
+        "mae": 0.00065729
+      },
+      "delta_r2": -0.118254
+    },
+    "evidence": {
+      "n_folds_positive": 0,
+      "n_folds_total": 3,
+      "dm_pvalue": 0.2953,
+      "dm_significant": false,
+      "ci_excludes_zero": false,
+      "placebo_better": true
+    }
+  }
+}

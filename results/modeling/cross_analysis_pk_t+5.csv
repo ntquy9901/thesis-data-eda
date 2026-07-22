@@ -1,0 +1,5 @@
+ticker_group,regime,n,price_r2,news_r2,delta_r2
+sensitive,high,184,-0.077115,-0.073846,0.003269
+sensitive,low,2600,0.173419,0.174157,0.000738
+non_sensitive,high,282,0.051267,0.05197,0.000702
+non_sensitive,low,17822,0.15513,0.155904,0.000774
