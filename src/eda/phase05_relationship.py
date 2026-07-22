@@ -25,7 +25,7 @@ import pandas as pd
 from config import EDA_TICKERS
 from src.eda.common import ensure_output_dirs, phase_output_dir
 
-TARGETS = ["pk_t+1", "pk_t+5", "pk_t+10", "rv_t+1", "rv_t+5", "rv_t+10", "log_returns"]
+TARGETS = ["pk_t+1", "pk_t+5", "pk_t+10", "pk_t+22", "rv_t+1", "rv_t+5", "rv_t+10", "rv_t+22", "log_returns"]
 NEWS_FEATURES = ["news_count_1d", "news_count_3d", "news_count_5d", "sentiment_mean"]
 MAX_LAG = 5
 

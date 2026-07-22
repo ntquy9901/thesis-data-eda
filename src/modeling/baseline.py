@@ -27,7 +27,14 @@ from src.features.sentiment_scores import (
 )
 from src.modeling.dataset import SPLIT_DATE, TARGETS, build_panel
 from src.modeling.features import (
-    ADV_FEATURES as NEWS_ADVANCED,  # Story 11-1: embedding + topic features
+    ADV_FEATURES as NEWS_ADVANCED,  # Story 11-1: embedding + topic features (legacy tong_hop)
+    ADV_FEATURES_DUAL as NEWS_ADVANCED_DUAL,  # Story 16-1: dual-group + emb_norm
+    ADV_FEATURES_DUAL_FULL as NEWS_ADVANCED_DUAL_FULL,  # Story 16-2/17: dual + EWMA + novelty + dispersion
+    EWMA_FEATURES,
+    NOVELTY_FEATURES,
+    DISPERSION_FEATURES,
+    MAX_SHOCK_FEATURES,
+    EWMA_MULTI_FEATURES,
 )
 
 PRICE_FEATURES = ["har_daily", "har_weekly", "har_monthly", "atr_14", "realized_vol_5d", "realized_vol_20d"]
@@ -36,6 +43,16 @@ FEATURE_SETS = {
     "price": PRICE_FEATURES,
     "price+news_basic": PRICE_FEATURES + NEWS_FEATURES,
     "price+news_adv": PRICE_FEATURES + NEWS_FEATURES + NEWS_ADVANCED,
+    # Story 16-1: dual-group embeddings (khach_quan + tong_hop) + emb_norm
+    "price+news_adv_dual": PRICE_FEATURES + NEWS_FEATURES + NEWS_ADVANCED_DUAL,
+    # Story 16-2: dual-group + EWMA(30d) smoothing
+    "price+news_adv_dual_ewma30": PRICE_FEATURES + NEWS_FEATURES + NEWS_ADVANCED_DUAL + EWMA_FEATURES,
+    # Story 17: full feature set (all EWMA windows + novelty + dispersion + shock)
+    "price+news_adv_full": PRICE_FEATURES + NEWS_FEATURES + NEWS_ADVANCED_DUAL_FULL,
+    # 17-2: novelty + dispersion + shock only (no EWMA)
+    "price+news_adv_novelty": PRICE_FEATURES + NEWS_FEATURES + NEWS_ADVANCED_DUAL + NOVELTY_FEATURES + DISPERSION_FEATURES + MAX_SHOCK_FEATURES,
+    # 17-3: multi-window EWMA (5/10/20/30/60) on top of basic dual
+    "price+news_adv_multi_ewma": PRICE_FEATURES + NEWS_FEATURES + NEWS_ADVANCED_DUAL + EWMA_MULTI_FEATURES,
     # Story 14-1 — per-family ablation isolating the Level-1 guideline features from the
     # bundled "news_adv" (embedding+topic) set above, so their individual OOS contribution
     # is visible rather than hidden inside one aggregate ΔR².
@@ -174,7 +191,7 @@ def run() -> list[Path]:
                 row = row.iloc[0]
                 d_r2 = (row["r2"] - base["r2"]) if base["r2"] is not None and row["r2"] is not None else None
                 d_rmse = (row["rmse"] - base["rmse"]) if base["rmse"] is not None else None
-                verdict = "HELPS" if (d_r2 is not None and d_r2 > 0) else ("neutral" if d_r2 == 0 else "no effect")
+                verdict = "HELPS" if (d_r2 is not None and d_r2 > 0) else ("neutral" if d_r2 is not None and d_r2 == 0 else "HURTS" if d_r2 is not None else "N/A")
                 lines.append(f"- {target} [{fset}]: ΔR²={d_r2:+.4f}  ΔRMSE={d_rmse:+.6f} → {verdict}")
 
     rep = outdir / "comparison_report.md"

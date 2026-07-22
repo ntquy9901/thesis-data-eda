@@ -106,7 +106,7 @@ def test_price_metrics_has_parkinson_columns():
          "open": 100.0, "high": 101.0, "low": 99.0, "close": 100.0, "volume": 1000}
     )
     m = price_metrics(df)
-    assert {"parkinson_vol", "pk_t+1", "pk_t+5", "pk_t+10"} <= set(m.columns)
+    assert {"parkinson_vol", "pk_t+1", "pk_t+5", "pk_t+10", "pk_t+22"} <= set(m.columns)
 
 
 def test_price_metrics_columns_and_nan_tail():
@@ -115,7 +115,7 @@ def test_price_metrics_columns_and_nan_tail():
          "open": 100.0, "high": 101.0, "low": 99.0, "close": 100.0, "volume": 1000}
     )
     m = price_metrics(df)
-    assert {"returns", "log_returns", "atr_14", "realized_vol_5d", "rv_t+1", "rv_t+10"} <= set(m.columns)
+    assert {"returns", "log_returns", "atr_14", "realized_vol_5d", "rv_t+1", "rv_t+10", "rv_t+22"} <= set(m.columns)
     assert m["rv_t+10"].isna().sum() >= 10  # NaN tail
 
 

@@ -107,10 +107,10 @@ def page_price() -> None:
         )
 
     st.subheader("Returns + targets")
-    cols = [c for c in ["log_returns", "rv_t+1", "rv_t+5", "rv_t+10", "pk_t+1", "pk_t+5", "pk_t+10"] if c in df.columns]
+    cols = [c for c in ["log_returns", "rv_t+1", "rv_t+5", "rv_t+10", "rv_t+22", "pk_t+1", "pk_t+5", "pk_t+10", "pk_t+22"] if c in df.columns]
     st.dataframe(df[["date"] + cols].tail(500), height=300)
     _insight(
-        "`log_returns` = lợi suất log hàng ngày. `pk_t+1/5/10` = Parkinson vol **1/5/10 ngày sau** "
+        "`log_returns` = lợi suất log hàng ngày. `pk_t+1/5/10/22` = Parkinson vol **1/5/10/22 ngày sau** "
         "(mục tiêu dự báo chính — mô hình không được nhìn thấy các cột này khi dự đoán, chỉ dùng "
         "để chấm điểm). `rv_t+*` = biến động thực hiện (realized vol) tương lai, một cách đo thay "
         "thế. 500 dòng gần nhất được hiển thị; cuộn bảng để xem chi tiết."

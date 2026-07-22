@@ -102,6 +102,34 @@ When a change is done, **generate** a concise, context-appropriate markdown summ
 - Cover, as applicable: what changed, files changed (path → purpose), tests + coverage %, code-review result + actions, commands actually run, risks/follow-ups, a Definition-of-Done checklist.
 - Be honest: state only what truly happened; write `Not run` (with reason) for anything skipped.
 
+## Clean Code — All Languages
+
+- Write code that clearly communicates intent through meaningful names and explicit control flow.
+- Keep each function focused on one responsibility and one abstraction level.
+- Prefer guard clauses and early returns over deeply nested conditionals.
+- Keep domain logic independent from UI, HTTP, databases, files, and frameworks.
+- Avoid mutable global state and hidden side effects.
+- Do not use unbounded in-process caches; enforce TTL and/or size limits.
+- Validate untrusted input at system boundaries.
+- Handle errors explicitly; never swallow exceptions or discard failure context.
+- Do not use exceptions for normal control flow.
+- Do not duplicate business rules across modules or services.
+- Prefer small duplication over an incorrect or premature abstraction.
+- Apply KISS and YAGNI; do not add speculative frameworks or extension points.
+- Comments must explain why, constraints, or non-obvious decisions—not restate code.
+- Do not hardcode secrets, environment-specific URLs, absolute local paths, or credentials.
+- Replace unexplained magic values with meaningfully named constants.
+- Keep modules cohesive and avoid generic dumping grounds such as `utils`, `helpers`, or `misc`.
+- Production logic must live in version-controlled, testable modules—not only in notebooks.
+- Separate pure computation from I/O to keep business logic deterministic and testable.
+- Inject external dependencies, clocks, randomness, and infrastructure clients.
+- Write deterministic, independent tests with clear Arrange–Act–Assert structure.
+- Log actionable context using structured logging; never log secrets or unnecessary personal data.
+- Optimize only after measurement, unless a documented system constraint requires otherwise.
+- Delete dead code instead of commenting it out.
+- Do not introduce unrelated refactoring in a focused change.
+- Follow the existing project conventions unless changing them is part of the requested scope.
+
 ## Code hygiene (all languages)
 - No hidden global state / unbounded in-process caches (use bounded TTL/size caches; externalize shared state to a managed store).
 - No secrets in code (use a secrets manager / env).

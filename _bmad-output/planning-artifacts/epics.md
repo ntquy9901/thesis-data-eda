@@ -301,6 +301,62 @@
 - [ ] Smoke test: app imports + each page builder runs on sample data
 **Verify:** all pages render with real artifacts
 
+---
+
+## Epic 15: Extended Horizon (pk_t+22)
+
+> Current targets stop at 10 trading days. Monthly horizon (~22 trading days) is standard in volatility forecasting literature. Add pk_t+22 to all pipeline stages.
+
+### Story 15.1: Extended horizon target pk_t+22
+**Goal:** Add 22-day forward Parkinson/realized volatility target through the entire pipeline.
+**Acceptance:**
+- [ ] `TARGET_HORIZONS += 22` → auto-generates pk_t+22 + rv_t+22 in price metrics
+- [ ] All downstream TARGETS lists updated (modeling, EDA phases)
+- [ ] Dashboard shows the new horizon
+- [ ] Tests pass; no regressions
+**Verify:** `uv run pytest tests/ -q --tb=short && uv run streamlit run src/dashboard/app.py`
+
+---
+
+## Epic 16: Advanced News Signal with Embedding + Ticker-Specific Models
+
+> Build on the finding that daily rule-based sentiment is too weak. Move to embedding-first approach: both news groups (khach_quan + tong_hop), EWMA-smoothing, ticker-specific modeling, and rigorous ablation.
+
+### Story 16.1: Embedding features from both groups + emb_norm
+**Goal:** Replace single-group (tong_hop) embedding with dual-group (khach_quan + tong_hop) features + emb_norm.
+**Acceptance:**
+- [ ] `features.py` processes both groups → columns `kq_emb_0..31`, `th_emb_0..31`, `kq_emb_norm`, `th_emb_norm`
+- [ ] Baseline updated with `price+news_adv_dual` feature set
+- [ ] Tests pass; no regressions
+
+### Story 16.2: EWMA aggregation for embedding features
+**Goal:** Add EWMA-smoothed embedding features (30d half-life) to capture slow-moving news regimes (r=+0.27 finding).
+**Acceptance:**
+- [ ] `features.py` adds `ewma_emb_0..31` (30d half-life per-ticker)
+- [ ] Added to `price+news_adv_dual` feature set
+- [ ] Tests pass
+
+### Story 16.3: Ticker clustering + entity embeddings
+**Goal:** Cluster tickers by news-sensitivity; add per-ticker embedding coefficients.
+**Acceptance:**
+- [ ] `ticker_clusters.py` — compute ΔR² per ticker, cluster into sensitive/insensitive groups
+- [ ] Entity embeddings per ticker learned inside the Ridge model
+- [ ] Clusters saved to `eda_output/modeling/ticker_clusters.json`
+
+### Story 16.4: Mixture-of-Experts (simplified gated model)
+**Goal:** Gate that only activates news branch for tickers in the sensitive cluster.
+**Acceptance:**
+- [ ] `src/modeling/moe.py` — gated Ridge: price-only expert + price+news expert
+- [ ] Per-ticker gate weight based on cluster membership
+- [ ] Comparison vs standard Ridge in comparison_report.md
+
+### Story 16.5: Ablation + permutation importance + OOS evaluation
+**Goal:** Rigorous feature selection — only keep features that improve both statistically and economically.
+**Acceptance:**
+- [ ] Permutation importance for each news feature in `significance.py`
+- [ ] OOS evaluation on a holdout period (2026H1)
+- [ ] Final recommendations: which news features to keep/drop
+
 
 
 

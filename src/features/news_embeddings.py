@@ -223,7 +223,7 @@ def _reduce(df: pd.DataFrame, dim: int = PCA_DIM) -> pd.DataFrame:
         from sklearn.decomposition import PCA
 
         d = min(dim, embs.shape[1], max(1, n_train - 1))
-        pca = PCA(n_components=d).fit(embs[train_mask])
+        pca = PCA(n_components=d, svd_solver="randomized").fit(embs[train_mask])
         reduced, out_dim, pca_applied = pca.transform(embs).astype(np.float32), d, True
     emb_cols = {f"emb_{i}": reduced[:, i] for i in range(out_dim)}
     other = df.drop(columns=raw_cols)
@@ -258,7 +258,7 @@ def build_comparable_group_embeddings() -> dict[str, pd.DataFrame]:
         from sklearn.decomposition import PCA
 
         dim = min(PCA_DIM, pooled.shape[1], max(1, len(pooled) - 1))
-        pca = PCA(n_components=dim).fit(pooled)
+        pca = PCA(n_components=dim, svd_solver="randomized").fit(pooled)
         for g, df in raws.items():
             if df.empty:
                 out[g] = pd.DataFrame()

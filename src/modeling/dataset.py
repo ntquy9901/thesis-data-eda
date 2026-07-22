@@ -25,7 +25,7 @@ from src.eda.common import EDA_OUTPUT_DIR, ensure_output_dirs
 HAR_WINDOWS = {"har_daily": 1, "har_weekly": 5, "har_monthly": 22}
 NEWS_FEATURES = ["news_count_1d", "news_count_3d", "news_count_5d", "days_since_last_news", "sentiment_mean"]
 PRICE_FEATURES = ["atr_14", "realized_vol_5d", "realized_vol_20d", "parkinson_vol", "log_returns"]
-TARGETS = ["pk_t+1", "pk_t+5", "pk_t+10"]
+TARGETS = ["pk_t+1", "pk_t+5", "pk_t+10", "pk_t+22"]
 SPLIT_DATE = "2025-01-01"  # train < 2025, test >= 2025 (per Phase 9 leakage policy)
 MODELING_DIR = "modeling"
 
@@ -45,7 +45,7 @@ def har_features(parkinson: pd.Series) -> pd.DataFrame:
 
 def time_split(panel: pd.DataFrame, split: str = SPLIT_DATE) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Split panel into train (< split) and test (>= split) by date. No shuffle."""
-    dates = pd.to_datetime(panel["date"])
+    dates = pd.to_datetime(panel["date"]).dt.tz_localize(None)
     train = panel[dates < pd.Timestamp(split)].copy()
     test = panel[dates >= pd.Timestamp(split)].copy()
     return train, test

@@ -18,15 +18,31 @@ import numpy as np
 import pandas as pd
 
 from src.eda.common import EDA_OUTPUT_DIR
+from sklearn.impute import SimpleImputer
+from sklearn.inspection import permutation_importance as sk_perm_importance
+from sklearn.linear_model import Ridge
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+
+from src.eda.common import EDA_OUTPUT_DIR
 from src.modeling.baseline import (
     FEATURE_SETS,
+    PRICE_FEATURES,
     SPLIT_DATE,
     TARGETS,
     _split_xy,
     compute_metrics,
     make_pipeline,
 )
-from src.modeling.dataset import build_panel
+from src.modeling.dataset import build_panel, time_split
+from src.modeling.features import (
+    ADV_FEATURES_DUAL_FULL,
+    EWMA_FEATURES,
+    EWMA_MULTI_FEATURES,
+    NOVELTY_FEATURES,
+    DISPERSION_FEATURES,
+    MAX_SHOCK_FEATURES,
+)
 
 
 # ---------- pure helpers (unit-tested) ----------
@@ -149,8 +165,126 @@ def _ablation_block(panel: pd.DataFrame, fsets: list[str], model_type: str,
     return out
 
 
+# ---------- Story 16-5: Permutation Importance + Group Ablation + OOS ----------
+FEATURE_GROUPS: dict[str, list[str]] = {
+    "basic_emb_legacy": [f"emb_{i}" for i in range(32)],
+    "kq_emb": [c for c in ADV_FEATURES_DUAL_FULL if c.startswith("kq_emb_") and c.count("_") == 2],
+    "th_emb": [c for c in ADV_FEATURES_DUAL_FULL if c.startswith("th_emb_") and c.count("_") == 2],
+    "kq_th_emb_norm": ["kq_emb_norm", "th_emb_norm"],
+    "topic_counts": [c for c in ADV_FEATURES_DUAL_FULL if "topic" in c],
+    "ewma_30d": EWMA_FEATURES,
+    "ewma_multi": EWMA_MULTI_FEATURES,
+    "novelty": NOVELTY_FEATURES,
+    "dispersion": DISPERSION_FEATURES,
+    "max_shock": MAX_SHOCK_FEATURES,
+}
+
+
+def compute_permutation_importance(panel: pd.DataFrame, target: str, features: list[str],
+                                    n_repeat: int = 5, seed: int = 42) -> pd.DataFrame:
+    """Permutation importance per feature: ΔR² drop when shuffled."""
+    df = panel.dropna(subset=[target]).copy()
+    train, test = time_split(df, SPLIT_DATE)
+    avail = [c for c in features if c in test.columns and c != target]
+    if len(avail) == 0:
+        return pd.DataFrame()
+    X_train, X_test = train[avail], test[avail]
+    y_train, y_test = train[target], test[target]
+    pipe = Pipeline([
+        ("impute", SimpleImputer(strategy="median")),
+        ("scale", StandardScaler()),
+        ("model", Ridge(alpha=1.0)),
+    ])
+    pipe.fit(X_train, y_train)
+    base_r2 = float(pipe.score(X_test, y_test))
+    rng = np.random.default_rng(seed)
+    rows = []
+    for col in avail:
+        drops = []
+        perm_r2_vals = []
+        for _ in range(n_repeat):
+            X_perm = X_test.copy()
+            X_perm[col] = X_perm[col].sample(frac=1, random_state=rng).values
+            perm_r2 = float(pipe.score(X_perm, y_test))
+            perm_r2_vals.append(perm_r2)
+            drops.append(base_r2 - perm_r2)
+        perm_r2_mean = float(np.mean(perm_r2_vals))
+        rows.append({"feature": col, "baseline_r2": base_r2,
+                     "permuted_r2_mean": perm_r2_mean, "drop": float(np.mean(drops)),
+                     "drop_std": float(np.std(drops, ddof=1))})
+    return pd.DataFrame(rows).sort_values("drop", ascending=False)
+
+
+def ablation_analysis(panel: pd.DataFrame, target: str, model_type: str = "ridge") -> dict:
+    """Drop each feature group and measure ΔR² vs full model."""
+    all_feats = PRICE_FEATURES + ["news_count_1d", "news_count_3d", "news_count_5d",
+                                   "days_since_last_news", "sentiment_mean"] + ADV_FEATURES_DUAL_FULL
+    df = panel.dropna(subset=[target]).copy()
+    train, test = time_split(df, SPLIT_DATE)
+    avail = [c for c in all_feats if c in test.columns]
+    if len(avail) == 0:
+        return {}
+    X_train, X_test = train[avail], test[avail]
+    y_train, y_test = train[target], test[target]
+
+    pipe = Pipeline([
+        ("impute", SimpleImputer(strategy="median")),
+        ("scale", StandardScaler()),
+        ("model", Ridge(alpha=1.0)),
+    ])
+    pipe.fit(X_train, y_train)
+    full_r2 = float(pipe.score(X_test, y_test))
+
+    results = {"full_r2": full_r2, "target": target, "groups": {}}
+    for gname, gfeats in FEATURE_GROUPS.items():
+        remaining = [c for c in avail if c not in gfeats]
+        if len(remaining) == 0:
+            continue
+        pipe_drop = Pipeline([
+            ("impute", SimpleImputer(strategy="median")),
+            ("scale", StandardScaler()),
+            ("model", Ridge(alpha=1.0)),
+        ])
+        pipe_drop.fit(train[remaining], y_train)
+        drop_r2 = float(pipe_drop.score(test[remaining], y_test))
+        results["groups"][gname] = {
+            "n_features": len(gfeats),
+            "full_r2": full_r2,
+            "drop_r2": round(drop_r2, 6),
+            "delta": round(drop_r2 - full_r2, 6),
+        }
+    return results
+
+
+def oos_evaluate(panel: pd.DataFrame, target: str, feature_set: str, oos_start: str = "2026-01-01",
+                 model_type: str = "ridge") -> dict:
+    """Evaluate on held-out OOS (>=oos_start) that was NEVER used in train/test."""
+    df = panel.dropna(subset=[target]).copy()
+    train_val = df[df["date"] < oos_start]
+    oos = df[df["date"] >= oos_start]
+    if len(train_val) == 0 or len(oos) == 0:
+        return {}
+    feats = [c for c in FEATURE_SETS[feature_set] if c in df.columns]
+    X_tr, y_tr = train_val[feats], train_val[target]
+    X_oos, y_oos = oos[feats], oos[target]
+
+    pipe = Pipeline([
+        ("impute", SimpleImputer(strategy="median")),
+        ("scale", StandardScaler()),
+        ("model", Ridge(alpha=1.0)),
+    ])
+    pipe.fit(X_tr, y_tr)
+    pred = pipe.predict(X_oos)
+    m = compute_metrics(y_oos.to_numpy(), pred)
+    return {
+        "target": target, "feature_set": feature_set, "oos_start": oos_start,
+        "n_train": len(train_val), "n_oos": len(oos),
+        "r2": m["r2"], "rmse": m["rmse"], "mae": m["mae"], "qlike": m["qlike"],
+    }
+
+
 # ---------- runner ----------
-def run() -> list[Path]:
+def run(full: bool = False) -> list[Path]:
     panel = build_panel()
     if panel.empty:
         return []
@@ -168,9 +302,12 @@ def run() -> list[Path]:
                              res["price+news_adv"]["y"] - res["price+news_adv"]["pred"])
         boot = bootstrap_delta(res["price+news_adv"]["y"], res["price"]["pred"], res["price+news_adv"]["pred"])
         results["per_target"][target] = {"dm": dm, "bootstrap": boot}
-        sig = "NOT significant" if dm["dm_pvalue"] > 0.05 else "significant"
+        sig = "NOT significant" if dm["dm_pvalue"] is None or dm["dm_pvalue"] > 0.05 else "significant"
+        ci = boot["delta_r2_ci"]
+        ci_lo = f"{ci[0]:.6f}" if ci else "N/A"
+        ci_hi = f"{ci[1]:.6f}" if ci else "N/A"
         lines.append(f"- **{target}**: DM p={dm['dm_pvalue']} → {sig}; "
-                     f"ΔR² 95% CI [{boot['delta_r2_ci'][0]}, {boot['delta_r2_ci'][1]}]")
+                     f"ΔR² 95% CI [{ci_lo}, {ci_hi}]")
 
     lines.append("\n## Per-ticker heterogeneity (ΔR² = +news_adv − price; >0 = news helps)\n")
     for target in TARGETS:
@@ -216,9 +353,36 @@ def run() -> list[Path]:
     jpath.write_text(json.dumps(results, indent=2), encoding="utf-8")
     rpath = outdir / "significance_report.md"
     rpath.write_text("\n".join(lines), encoding="utf-8")
-    return [jpath, rpath]
+    written = [jpath, rpath]
+
+    if full:
+        perm = compute_permutation_importance(panel, "pk_t+10",
+                                               FEATURE_SETS["price+news_adv_dual"] + EWMA_FEATURES +
+                                               NOVELTY_FEATURES + DISPERSION_FEATURES + MAX_SHOCK_FEATURES,
+                                               n_repeat=5, seed=42)
+        if not perm.empty:
+            ppath = outdir / "permutation_importance.csv"
+            perm.to_csv(ppath, index=False, encoding="utf-8")
+            written.append(ppath)
+
+        abl = ablation_analysis(panel, "pk_t+10", "ridge")
+        if abl:
+            apath = outdir / "ablation_analysis.json"
+            apath.write_text(json.dumps(abl, indent=2), encoding="utf-8")
+            written.append(apath)
+
+        for fset in ["price", "price+news_adv_dual", "price+news_adv_full"]:
+            oos_r = oos_evaluate(panel, "pk_t+10", fset, "2026-01-01", "ridge")
+            if oos_r:
+                opath = outdir / f"oos_{fset}.json"
+                opath.write_text(json.dumps(oos_r, indent=2), encoding="utf-8")
+                written.append(opath)
+
+    return written
 
 
 if __name__ == "__main__":  # pragma: no cover
-    for p in run():
+    import sys
+    full = "--full" in sys.argv
+    for p in run(full=full):
         print(f"Wrote {p}")

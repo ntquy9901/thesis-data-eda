@@ -26,7 +26,7 @@ FEATURE_COLS = [
     "parkinson_vol", "news_count_1d", "news_count_3d", "news_count_5d",
     "coverage_ratio_5d", "days_since_last_news", "sentiment_mean",
 ]
-TARGETS = ["pk_t+1", "pk_t+5", "pk_t+10", "rv_t+1", "rv_t+5", "rv_t+10"]
+TARGETS = ["pk_t+1", "pk_t+5", "pk_t+10", "pk_t+22", "rv_t+1", "rv_t+5", "rv_t+10", "rv_t+22"]
 NZV_THRESHOLD = 1e-8
 COLLINEAR_THRESHOLD = 0.9
 TRAIN_TEST_SPLIT = "2025-01-01"  # ≤2024 train, ≥2025 test (time-based, per Phase 9 policy)

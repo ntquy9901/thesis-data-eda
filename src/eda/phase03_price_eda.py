@@ -24,7 +24,7 @@ import pandas as pd
 from config import EDA_TICKERS, PRICE_DATA_DIR
 from src.eda.common import ensure_output_dirs, phase_output_dir
 
-TARGET_HORIZONS = (1, 5, 10)
+TARGET_HORIZONS = (1, 5, 10, 22)
 ATR_WINDOW = 14
 RV_WINDOWS = (5, 20)
 ROLLING_WINDOWS = (20, 60)

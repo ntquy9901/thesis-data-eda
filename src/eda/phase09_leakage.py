@@ -20,7 +20,7 @@ import pandas as pd
 from src.eda.common import ensure_output_dirs, phase_output_dir
 from src.eda.phase08_feature_validation import FEATURE_COLS, _build_feature_matrix
 
-TARGETS = ["pk_t+1", "pk_t+5", "pk_t+10", "rv_t+1", "rv_t+5", "rv_t+10"]
+TARGETS = ["pk_t+1", "pk_t+5", "pk_t+10", "pk_t+22", "rv_t+1", "rv_t+5", "rv_t+10", "rv_t+22"]
 TARGET_LEAKAGE_R = 0.95
 TRAIN_TEST_SPLIT = "2025-01-01"  # ≤2024 train, ≥2025 test
 
